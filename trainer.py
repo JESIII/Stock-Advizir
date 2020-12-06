@@ -1,20 +1,14 @@
 # #Stock Advisor
-import pandas as pd
-import pandas_datareader.data as web
 import datetime
+from datetime import datetime
+import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
-from datetime import datetime
-from datetime import timedelta
 import stockstats as ss
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score
 from sklearn import tree
-from joblib import dump, load
-from sklearn import preprocessing
-import os
-import numpy as np
+from joblib import dump
 #show more columns
 pd.set_option('display.max_columns',10)
 def calcRating(row):
