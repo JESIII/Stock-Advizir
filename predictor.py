@@ -1,25 +1,16 @@
 import yfinance as yf
-from datetime import datetime
-from datetime import timedelta
 import stockstats as ss
-from joblib import dump, load
-import pandas_datareader.data as web
-import pandas as pd
-from sklearn.metrics import accuracy_score
-from sklearn import tree
+from joblib import load
 import matplotlib.pyplot as plt
-def getRating(tickr):
+def getRating(tickr, period):
     #load data into dataframe and stock dataframe
-    # stockDataset = pd.read_csv('D:/Dropbox/Dropbox (CSU Fullerton)/481/zStock-AI/Datasets/AMD.csv')
-    # stockDataset.columns = ['Date','High','Low','Open','Close','Volume','AdjClose']
     msft = yf.Ticker(tickr)
-    stockDataset = msft.history(period='3mo')
-    print(stockDataset)
+    stockDataset = msft.history(period=period)
+    #print(stockDataset)
     stockDF = stockDataset.copy()
     #get data indicators
     stockDF = ss.StockDataFrame.retype(stockDF)
     macdh = stockDF['macdh']
-    boll = stockDF['boll']
     kdjk = stockDF['kdjk']
     trix = stockDF['trix']
     rsi = stockDF['rsi_6']
@@ -31,18 +22,31 @@ def getRating(tickr):
     stockDataset['TRIX'] = trix
     stockDataset = stockDataset.dropna()
     #print(stockDataset)
-
+    dataFrameCopy = stockDataset.copy()
+    dataFrameCopy = dataFrameCopy[-90:]
     #Normalize Data
     stockDataset["TRIX"]=((stockDataset["TRIX"]-stockDataset["TRIX"].min())/(stockDataset["TRIX"].max()-stockDataset["TRIX"].min()))*100
     stockDataset["RollingAvg"]=((stockDataset["RollingAvg"]-stockDataset["RollingAvg"].min())/(stockDataset["RollingAvg"].max()-stockDataset["RollingAvg"].min()))*20
     stockDataset["Volume"]=((stockDataset["Volume"]-stockDataset["Volume"].min())/(stockDataset["Volume"].max()-stockDataset["Volume"].min()))*100
     stockDataset["KDJ"]=((stockDataset["KDJ"]-stockDataset["KDJ"].min())/(stockDataset["KDJ"].max()-stockDataset["KDJ"].min()))*100
     y = stockDataset.drop(['Open','Close','High','Low'], axis=1)
-    print(y)
+    #print(y)
     clf = load('TrainedModel.joblib')
     y_pred = clf.predict(y)
-    print(y_pred[-10:])
+    dataFrameCopy['Rating'] = y_pred[-90:]
+    dataFrameCopy = dataFrameCopy.drop(['High','Low', 'Stock Splits', 'Dividends'], axis=1)
+    dataFrameCopy.plot.line(y='Close')
+    buyRating = dataFrameCopy.query("Rating == 'Buy'")
+    sellRating = dataFrameCopy.query("Rating == 'Sell'")
+    plt.plot(buyRating.index, buyRating.Close, 'g*')
+    plt.plot(sellRating.index, sellRating.Close, 'r*')
+    print(dataFrameCopy)
+    plt.show()
+    #print(y_pred[-30:])
+    
 if __name__ == "__main__":
     print('Enter a ticker: ')
     tickr = input()
-    getRating(tickr)
+    print('Enter a period: 3mo,6mo,1y,2y,5y,10y,ytd')
+    period = input()
+    getRating(tickr, period)

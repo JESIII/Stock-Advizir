@@ -1,11 +1,4 @@
 # #Stock Advisor
-# import numpy as np
-# from scipy import optimize
-# import json
-# import pandas as pd
-# historicalStock = pd.read_csv("C:/Users/tinco/Downloads/archive/Stocks/amd.us.txt")
-# historicalRSI = pd.DataFrame
-# for row in historicalAMD:
 import pandas as pd
 import pandas_datareader.data as web
 import datetime
