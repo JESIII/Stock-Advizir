@@ -18,6 +18,6 @@ Enter a ticker:
 Enter a Period: 3mo,6mo,1y,2y,5y,10y,ytd
 <Your Period>
 ```
-Output (With input AAPL, 3mo):
-![Terminal Output](https://i.imgur.com/Z5R6A6i.png)
-![Graph Output](https://i.imgur.com/481mwAh.png)
+Output (With input AAPL, 3mo):  
+![Terminal Output](https://i.imgur.com/Z5R6A6i.png)  
+![Graph Output](https://i.imgur.com/481mwAh.png)  
