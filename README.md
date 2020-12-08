@@ -23,4 +23,4 @@ Output (With input AAPL, 3mo):
 ![Graph Output](https://i.imgur.com/481mwAh.png)  
   
 ## License
-[GPL-3.0](https://choosealicense.com/licenses/gpl-3.0/)
+[GPL-3.0-or-later](https://choosealicense.com/licenses/gpl-3.0/)
