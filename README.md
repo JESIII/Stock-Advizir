@@ -7,8 +7,7 @@ It was trained using the scikit learn Decision Tree Classifier algorithm.
 Training data was gathered from Yahoo Finance with indicators added which include:  
 MACD, Stochastic Oscillator, Triple Exponential Moving, Average, RSI, and 20 Day Rolling Average.  
   
-The data is then passed into my own algorithm which is meant to categorize the  
-days into Buy/Sell/Hold using two indicators: RSI and MACD.  
+The data is then passed into my own algorithm which is meant to categorize the days into Buy/Sell/Hold using two indicators: RSI and MACD.  
 It also rejects a buy if the price is lower 20 days later so it guarantees the input data is profitable so that the model only learns from profitable purchases.  
    
 This is what the input data looks like graphed. Green is “buy” and red is “sell”:  
