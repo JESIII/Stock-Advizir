@@ -1,2 +1,2 @@
-# zStock-AI
+# Stock Advizir
  
