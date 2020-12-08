@@ -21,3 +21,6 @@ Enter a Period: 3mo,6mo,1y,2y,5y,10y,ytd
 Output (With input AAPL, 3mo):  
 ![Terminal Output](https://i.imgur.com/Z5R6A6i.png)  
 ![Graph Output](https://i.imgur.com/481mwAh.png)  
+  
+## License
+[GPL-3.0](https://choosealicense.com/licenses/gpl-3.0/)
