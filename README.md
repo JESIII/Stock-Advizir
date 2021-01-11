@@ -30,5 +30,9 @@ Y-axis: Open Price, X-axis: Date.
 Green*: Buy, Red*: Sell.  
 ![Graph Output](https://i.imgur.com/481mwAh.png)  
   
+## Android App
+Currently in development: 
+[Download on Google Play Store](https://play.google.com/store/apps/details?id=com.jesiii.stockadvizir)  
+  
 ## License
 [GPL-3.0-or-later](https://choosealicense.com/licenses/gpl-3.0/)
