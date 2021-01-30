@@ -2,51 +2,49 @@ import yfinance as yf
 import stockstats as ss
 from joblib import load
 import matplotlib.pyplot as plt
-def getRating(tickr, period):
+def get_rating(tickr, period):
     #load data into dataframe and stock dataframe
-    msft = yf.Ticker(tickr)
-    stockDataset = msft.history(period=period)
-    #print(stockDataset)
-    stockDF = stockDataset.copy()
+    stock = yf.Ticker(tickr)
+    stock_dataset = stock.history(period=period)
+    stock_DF = stock_dataset.copy()
     #get data indicators
-    stockDF = ss.StockDataFrame.retype(stockDF)
-    macdh = stockDF['macdh']
-    kdjk = stockDF['kdjk']
-    trix = stockDF['trix']
-    rsi = stockDF['rsi_6']
+    stock_DF = ss.StockDataFrame.retype(stock_DF)
+    macdh = stock_DF['macdh']
+    kdjk = stock_DF['kdjk']
+    trix = stock_DF['trix']
+    rsi = stock_DF['rsi_6']
     #add indicators to dataframe
-    stockDataset['RollingAvg'] = stockDataset.Volume.rolling(20).mean()
-    stockDataset['RSI'] = rsi
-    stockDataset['MACDh'] = macdh
-    stockDataset['KDJ'] = kdjk
-    stockDataset['TRIX'] = trix
-    stockDataset = stockDataset.dropna()
-    #print(stockDataset)
-    dataFrameCopy = stockDataset.copy()
-    dataFrameCopy = dataFrameCopy[-90:]
+    stock_dataset['RollingAvg'] = stock_dataset.Volume.rolling(20).mean()
+    stock_dataset['RSI'] = rsi
+    stock_dataset['MACDh'] = macdh
+    stock_dataset['KDJ'] = kdjk
+    stock_dataset['TRIX'] = trix
+    stock_dataset = stock_dataset.dropna()
+    #print(stock_dataset)
+    df_copy = stock_dataset.copy()
+    df_copy = df_copy[-90:]
     #Normalize Data
-    stockDataset["TRIX"]=((stockDataset["TRIX"]-stockDataset["TRIX"].min())/(stockDataset["TRIX"].max()-stockDataset["TRIX"].min()))*100
-    stockDataset["RollingAvg"]=((stockDataset["RollingAvg"]-stockDataset["RollingAvg"].min())/(stockDataset["RollingAvg"].max()-stockDataset["RollingAvg"].min()))*20
-    stockDataset["Volume"]=((stockDataset["Volume"]-stockDataset["Volume"].min())/(stockDataset["Volume"].max()-stockDataset["Volume"].min()))*100
-    stockDataset["KDJ"]=((stockDataset["KDJ"]-stockDataset["KDJ"].min())/(stockDataset["KDJ"].max()-stockDataset["KDJ"].min()))*100
-    y = stockDataset.drop(['Open','Close','High','Low'], axis=1)
+    stock_dataset["TRIX"]=((stock_dataset["TRIX"]-stock_dataset["TRIX"].min())/(stock_dataset["TRIX"].max()-stock_dataset["TRIX"].min()))*100
+    stock_dataset["RollingAvg"]=((stock_dataset["RollingAvg"]-stock_dataset["RollingAvg"].min())/(stock_dataset["RollingAvg"].max()-stock_dataset["RollingAvg"].min()))*20
+    stock_dataset["Volume"]=((stock_dataset["Volume"]-stock_dataset["Volume"].min())/(stock_dataset["Volume"].max()-stock_dataset["Volume"].min()))*100
+    stock_dataset["KDJ"]=((stock_dataset["KDJ"]-stock_dataset["KDJ"].min())/(stock_dataset["KDJ"].max()-stock_dataset["KDJ"].min()))*100
+    y = stock_dataset.drop(['Open','Close','High','Low'], axis=1)
     #print(y)
     clf = load('TrainedModel.joblib')
     y_pred = clf.predict(y)
-    dataFrameCopy['Rating'] = y_pred[-90:]
-    dataFrameCopy = dataFrameCopy.drop(['High','Low', 'Stock Splits', 'Dividends'], axis=1)
-    dataFrameCopy.plot.line(y='Close')
-    buyRating = dataFrameCopy.query("Rating == 'Buy'")
-    sellRating = dataFrameCopy.query("Rating == 'Sell'")
-    plt.plot(buyRating.index, buyRating.Close, 'g*')
-    plt.plot(sellRating.index, sellRating.Close, 'r*')
-    print(dataFrameCopy)
+    df_copy['Rating'] = y_pred[-90:]
+    df_copy = df_copy.drop(['High','Low', 'Stock Splits', 'Dividends'], axis=1)
+    df_copy.plot.line(y='Close')
+    buy_rating = df_copy.query("Rating == 'Buy'")
+    sell_rating = df_copy.query("Rating == 'Sell'")
+    plt.plot(buy_rating.index, buy_rating.Close, 'g*')
+    plt.plot(sell_rating.index, sell_rating.Close, 'r*')
+    print(df_copy)
     plt.show()
-    #print(y_pred[-30:])
     
 if __name__ == "__main__":
     print('Enter a ticker: ')
     tickr = input()
     print('Enter a period: 3mo,6mo,1y,2y,5y,10y,ytd')
     period = input()
-    getRating(tickr, period)
+    get_rating(tickr, period)
