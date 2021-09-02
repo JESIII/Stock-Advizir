@@ -8,6 +8,7 @@ import pandas as pd
 from joblib import dump, load
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 
@@ -90,16 +91,16 @@ def train():
             x = data.drop('rating', axis=1)
             y = data['rating']
             X_train, X_test, y_train, y_test = train_test_split(x, y, random_state=1337)
-            neigh = KNeighborsClassifier()
-            neigh.fit(X_train, y_train)
-            y_pred = neigh.predict(X_test)
+            classifier = MLPClassifier(random_state=1337)
+            classifier.fit(X_train, y_train)
+            y_pred = classifier.predict(X_test)
             accuracy = metrics.accuracy_score(y_test, y_pred)
             mse = metrics.mean_squared_error(y_test, y_pred)
             stats_str = f'Classifier: {category}_{stock}\nAccuracy: {accuracy}\nMSE: {mse}\n----------------------\n'
             file_name = f'{category}_{stock}'
             print(stats_str)
             open(f'./stats/{file_name}.txt').write(stats_str)
-            dump(neigh, f'./classifiers/{file_name}.classifier', compress=True)
+            dump(classifier, f'./classifiers/{file_name}.classifier', compress=True)
             # when in predictor, run all 3 for each sector/cap and do majority voting to choose the result
 
 def get_stock_category(stock):
@@ -137,8 +138,8 @@ def predict(stock):
     }
     for filename in os.listdir('./classifiers'):
         if fnmatch.fnmatch(filename, f'{category}*'):
-            neigh : KNeighborsClassifier = load(filename)
-            prediction = neigh.predict(data)
+            classifier : MLPClassifier = load(filename)
+            prediction = classifier.predict(data)
             ratings[prediction['rating']] += 1
     if list(ratings.values).count(max(ratings, key=ratings.get)) > 1:
         return 1 # 1 == Hold
