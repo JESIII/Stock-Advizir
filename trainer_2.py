@@ -71,7 +71,7 @@ def get_and_clean_data(stock):
     data_sent = pd.read_csv(url)
     url = f'https://www.alphavantage.co/query?function=UNEMPLOYMENT&datatype=csv&apikey={alpha_vantage_key}'
     data_unemployment = pd.read_csv(url)
-    data = data_stock.join(other=[data_stock, data_rsi, data_macd, data_cci, data_stoch, data_sent, data_unemployment]) 
+    data = data_stock.join(other=[data_rsi, data_macd, data_cci, data_stoch, data_sent, data_unemployment]) 
     x = data.drop(['open', 'high', 'low', 'close', 'volume']).values #returns a numpy array
     min_max_scaler = preprocessing.MinMaxScaler(feature_range=(0,1))
     x_scaled = min_max_scaler.fit_transform(x)
