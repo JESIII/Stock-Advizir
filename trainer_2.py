@@ -157,11 +157,3 @@ def predict(stock):
         return 1 # 1 == Hold
     else:
         return max(ratings, key=ratings.get)
-# alpha_vantage_key = '0KLB6EE5V872NI82'
-# import pandas as pd
-# from finta import TA
-# url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&datatype=csv&adjusted=true&symbol=AMD&interval=30min&outputsize=compact&apikey={alpha_vantage_key}'
-# data_stock = pd.read_csv(url, index_col='timestamp')
-# data_stock['STOCHRSI'] = TA.STOCHRSI(data_stock)
-# data_stock.tail()
-train()
