@@ -1,0 +1,3 @@
+Classifier: ConsumerCyclical_small_SBH
+Accuracy: 0.7758620689655172
+----------------------
