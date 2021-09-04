@@ -14,15 +14,17 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 import time
 import requests
-alpha_vantage_key = '0KLB6EE5V872NI82'
-fmp_key = 'ab95806044be10a3e4f5868c4d8f4ac7'
+alpha_vantage_key = None
+fmp_key_1 = None
+fmp_key = None
 def add_ratings_to_data(df: pd.DataFrame):
-    shift = 30 * 6.5 * 2 #30 days, 6.5 hrs/day, 2 half-hrs/hr
+    shift = 30 #30 days, 6.5 hrs/day, 2 half-hrs/hr
     df['rating'] = 'hold'
-    df.loc[((df['open'] < df.shift(shift)['open']) and ((df.shift(shift)['open'] - df['open']) / df['open']) * 100 > 10), df['rating']] = 'mega buy'
-    df.loc[((df['open'] < df.shift(shift)['open']) and ((df.shift(shift)['open'] - df['open']) / df['open']) * 100 > 2), df['rating']] = 'buy'
-    df.loc[((df['open'] > df.shift(shift)['open']) and ((df['open'] - df.shift(shift)['open']) / df['open']) * 100 > 10), df['rating']] = 'mega sell'
-    df.loc[((df['open'] > df.shift(shift)['open']) and ((df['open'] - df.shift(shift)['open']) / df['open']) * 100 > 2), df['rating']] = 'sell'
+    df.loc[((df['open'] < df.shift(shift)['open']) & ((df.shift(shift)['open'] - df['open']) / df['open'] * 100 > 10)), 'rating'] = 'mega buy'
+    df.loc[((df['open'] < df.shift(shift)['open']) & ((df.shift(shift)['open'] - df['open']) / df['open'] * 100 > 2)), 'rating'] = 'buy'
+    df.loc[((df['open'] > df.shift(shift)['open']) & ((df['open'] - df.shift(shift)['open']) / df['open'] * 100 > 10)), 'rating'] = 'mega sell'
+    df.loc[((df['open'] > df.shift(shift)['open']) & ((df['open'] - df.shift(shift)['open']) / df['open'] * 100 > 2)), 'rating'] = 'sell'
+    return df
 
 def train():
     # screen stocks into sectors, market cap sizes
@@ -87,52 +89,53 @@ def train():
             classifier.fit(X_train, y_train)
             y_pred = classifier.predict(X_test)
             accuracy = metrics.accuracy_score(y_test, y_pred)
-            mse = metrics.mean_squared_error(y_test, y_pred)
-            stats_str = f'Classifier: {category}_{stock}\nAccuracy: {accuracy}\nMSE: {mse}\n----------------------\n'
+            stats_str = f'Classifier: {category}_{stock}\nAccuracy: {accuracy}\n----------------------\n'
             file_name = f'{category}_{stock}'
             print(stats_str)
-            open(f'./stats/{file_name}.txt').write(stats_str)
+            open(f'./stats/{file_name}.txt', "w").write(stats_str)
             dump(classifier, f'./classifiers/{file_name}.classifier', compress=True)
-            pass
             # when in predictor, run all 3 for each sector/cap and do majority voting to choose the result
 def get_and_clean_data(stock):
-    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&datatype=csv&adjusted=true&symbol={stock}&interval=30min&outputsize=compact&apikey={alpha_vantage_key}'
+    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&datatype=csv&adjusted=true&symbol={stock}&outputsize=full&apikey={alpha_vantage_key}'
     data = pd.read_csv(url, index_col='timestamp')
+    data_price = data.copy()
     data_rsi = TA.STOCHRSI(data)
     data_macd = TA.MACD(data)
     data_stoch = TA.STOCH(data)
     data_vzo = TA.VZO(data)
-    url = f'https://www.alphavantage.co/query?function=CCI&time_period=60&datatype=csv&symbol={stock}&interval=30min&apikey={alpha_vantage_key}'
-    data_cci = pd.read_csv(url)
+    url = f'https://www.alphavantage.co/query?function=CCI&time_period=60&datatype=csv&symbol={stock}&interval=daily&apikey={alpha_vantage_key}'
+    data_cci = pd.read_csv(url, index_col='time')
     url = f'https://www.alphavantage.co/query?function=CONSUMER_SENTIMENT&datatype=csv&apikey={alpha_vantage_key}'
-    data_sent = pd.read_csv(url)
-    url = f'https://www.alphavantage.co/query?function=UNEMPLOYMENT&datatype=csv&apikey={alpha_vantage_key}'
-    data_unemployment = pd.read_csv(url)
-    data = data.merge(data_cci, how='left', left_index=True, right_index=True) 
-    data = data.merge(data_sent, how='left', left_index=True, right_index=True)
-    data = data.merge(data_unemployment, how='left', left_index=True, right_index=True)
-    data['vzo'] = data_vzo
-    data['stoch'] = data_stoch
-    data['macd'] = data_macd
-    data['rsi'] = data_rsi
-    x = data.drop(['open', 'high', 'low', 'close', 'volume']).values #returns a numpy array
-    min_max_scaler = preprocessing.MinMaxScaler(feature_range=(0,1))
-    x_scaled = min_max_scaler.fit_transform(x)
-    data = pd.DataFrame(x_scaled)
+    data_sent = pd.read_csv(url, index_col='timestamp')
+    # url = f'https://www.alphavantage.co/query?function=UNEMPLOYMENT&datatype=csv&apikey={alpha_vantage_key}'
+    # data_unemployment = pd.read_csv(url, index_col='timestamp')
+    data = data.join(data_rsi, how='left') 
+    data = data.join(data_macd, how='left') 
+    data = data.join(data_stoch, how='left') 
+    data = data.join(data_vzo, how='left') 
+    data = data.join(data_cci, how='left') 
+    data = data.join(data_sent, how='left')
+    # data = data.join(data_unemployment, how='left')
+    data = data.drop(labels=['open', 'high', 'low', 'close', 'volume'], axis=1)
+    scaler = preprocessing.MinMaxScaler() 
+    scaled_values = scaler.fit_transform(data) 
+    data.loc[:,:] = scaled_values
+    data = data.join(data_price, how='left')
     data.interpolate(axis='columns', inplace=True)
     data.dropna(inplace=True)
     return data
 def get_stock_category(stock):
-    url = f'https://financialmodelingprep.com/api/v3/profile/{stock}&apikey={fmp_key}'
+    url = f'https://financialmodelingprep.com/api/v3/profile/{stock}?apikey={fmp_key}'
     data = requests.get(url).json()
-    sector = data['sector']
-    cap = data['mktCap']
+    sector = data[0]['sector']
+    cap = data[0]['mktCap']
     if cap > 10_000_000_000:
         cap = 'large'
     elif cap < 10_000_000_000 and cap > 2_000_000_000:
         cap = 'mid'
     else:
         cap = 'small'
+    sector = sector.replace(' ', '')
     category = f'{sector}_{cap}'
     return category
 def predict(stock):
