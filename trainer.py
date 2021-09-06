@@ -1,108 +1,188 @@
-# #Stock Advisor
+import os
+import fnmatch
 import datetime
 from datetime import datetime
+import json
 import pandas as pd
+from matplotlib import dates
 import matplotlib.pyplot as plt
-import yfinance as yf
-import stockstats as ss
+from joblib import dump, load
+from sklearn.neighbors import KNeighborsClassifier
+from finta import TA
+#from sklearn.ensemble import RandomForestClassifier
+#from sklearn.neural_network import MLPClassifier
+from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from sklearn import tree
-from joblib import dump
-#import requests
-pd.set_option('display.max_columns',10)
-#Set stock to train on
-stock = 'MSFT'
-#Finnhub Info
+from sklearn import metrics
+import time
+import requests
+keys = open('./keys.txt', 'r').readlines()
+alpha_vantage_key = keys[0].split(':')[1].strip()
+fmp_key = keys[1].split(':')[1].strip()
+def add_ratings_to_data(df: pd.DataFrame):
+    df['rating'] = 'hold'
+    df.loc[((df['open'] < df.shift(30)['open']) & (df['open'] < df.shift(100)['open']) & ((df.shift(30)['open'] - df['open']) / df['open'] * 100 > 20)), 'rating'] = 'mega buy'
+    df.loc[((df['open'] < df.shift(30)['open']) & (df['open'] < df.shift(100)['open']) & ((df.shift(30)['open'] - df['open']) / df['open'] * 100 > 3)), 'rating'] = 'buy'
+    df.loc[((df['open'] > df.shift(30)['open']) & (df['open'] > df.shift(100)['open']) & ((df['open'] - df.shift(30)['open']) / df['open'] * 100 > 20)), 'rating'] = 'mega sell'
+    df.loc[((df['open'] > df.shift(30)['open']) & (df['open'] > df.shift(100)['open']) & ((df['open'] - df.shift(30)['open']) / df['open'] * 100 > 3)), 'rating'] = 'sell'
+    df.drop(df.tail(100).index,inplace=True)
+    return df
 
-#Clean data for training
-def calcRating(row):
-    index = row.name
-    index = index + pd.DateOffset(days=20)
-    index_offset = index.strftime('%Y-%m-%d')
-    row_pos_shift = None
-    tries = 0
-    while (tries<10) & (index < (datetime.today() - pd.DateOffset(days=21))):
-        try:
-            row_pos_shift = stock_dataset.loc[[str(index_offset)]]
-        except: 
-            index = index + pd.DateOffset(days=1)
-            index_offset = index.strftime('%Y-%m-%d')
-            continue
-        else:
-            tries = 10
-        tries += 1
-    if index > (datetime.today() - pd.DateOffset(days=21)):
-        return None
-    price_increased = True if row_pos_shift.Open[0] > row.Open else False
-    good_RSI = True if row.RSI < 45 else False
-    good_TRIX = True if row.TRIX < 50 else False
-    bad_MACD = True if row.MACDh > 0.1 else False
-    good_MACD = True if row.MACDh < -0.1 else False
-    good_KDJ = True if row.KDJ < 50 else False
-    bad_RSI = True if row.RSI > 65 else False
-    if good_MACD & good_KDJ & good_RSI & good_TRIX & price_increased:
-        return 'Buy'
-    elif (not good_KDJ) & (not good_MACD) & (bad_RSI) & (not good_TRIX) & bad_MACD & (not price_increased):
-        return 'Sell'
+def train():
+    # screen stocks into sectors, market cap sizes
+    small_cap_url = f'https://financialmodelingprep.com/api/v3/stock-screener?marketCapMoreThan=300000000&marketCapLowerThan=2000000001&limit=3&apikey={fmp_key}'
+    mid_cap_url = f'https://financialmodelingprep.com/api/v3/stock-screener?marketCapMoreThan=2000000000&marketCapLowerThan=10000000001&limit=3&apikey={fmp_key}'
+    large_cap_url = f'https://financialmodelingprep.com/api/v3/stock-screener?marketCapMoreThan=10000000000&limit=3&apikey={fmp_key}'
+    # find api that can screen by those
+
+    # https://api-v2.intrinio.com/securities/screen
+    # need to have top 3 of each sector(aka GICS group)/market cap pair
+    training_stocks = {
+        'Consumer Cyclical':[],
+        'Energy':[],
+        'Technology':[],
+        'Industrials':[],
+        'Financial Services':[],
+        'Basic Materials':[],
+        'Communication Services':[],
+        'Consumer Defensive':[],
+        'Healthcare':[],
+        'Real Estate':[],
+        'Utilities':[],
+        'Industrial Goods':[],
+        'Financial':[],
+        'Services':[],
+        'Conglomerates':[]
+    }
+    url = f'https://www.alphavantage.co/query?function=CONSUMER_SENTIMENT&datatype=csv&apikey={alpha_vantage_key}'
+    data_sent = pd.read_csv(url, index_col='timestamp')
+    for sector in training_stocks:
+        url = small_cap_url + f'&sector={sector}'
+        r = requests.get(url)
+        data = r.json()
+        for stock in data:
+            training_stocks[sector].append(stock['symbol'])
+        url = mid_cap_url + f'&sector={sector}'
+        r = requests.get(url)
+        data = r.json()
+        for stock in data:
+            training_stocks[sector].append(stock['symbol'])
+        url = large_cap_url + f'&sector={sector}'
+        r = requests.get(url)
+        data = r.json()
+        for stock in data:
+            training_stocks[sector].append(stock['symbol'])
+        time.sleep(3)
+    # alpha vantage for stock data
+
+    # we need take into account: 
+    # sentiment, country, rsi, macd, 
+    # earnings date, price, volume, fear index of overall market
+
+    for sector in training_stocks:
+        stocks = training_stocks[sector]
+        for stock in stocks:
+            time.sleep(30)
+            data = get_and_clean_data(stock, data_sent)
+            data = add_ratings_to_data(data)
+            data.dropna(inplace=True)
+            data.to_csv(f'./data/{stock}.csv')
+            category = get_stock_category(stock)
+            plot_data(data, stock)
+            x = data.drop(['open', 'high', 'low', 'close', 'volume', 'rating'], axis=1)
+            y = data['rating']
+            X_train, X_test, y_train, y_test = train_test_split(x, y, random_state=1337)
+            classifier = KNeighborsClassifier()
+            classifier.fit(X_train, y_train)
+            y_pred = classifier.predict(X_test)
+            accuracy = metrics.accuracy_score(y_test, y_pred)
+            stats_str = f'Classifier: {category}_{stock}\nAccuracy: {accuracy}\n----------------------\n'
+            file_name = f'{category}_{stock}'
+            print(stats_str)
+            open(f'./stats/{file_name}.txt', "w").write(stats_str)
+            dump(classifier, f'./classifiers/{file_name}.classifier', compress=True)
+            # when in predictor, run all 3 for each sector/cap and do majority voting to choose the result
+def get_and_clean_data(stock, data_sent):
+    time.sleep(5)
+    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&datatype=csv&adjusted=true&symbol={stock}&outputsize=full&apikey={alpha_vantage_key}'
+    data = pd.read_csv(url, index_col='timestamp')
+    url = f'https://www.alphavantage.co/query?function=CCI&time_period=60&datatype=csv&symbol={stock}&interval=daily&apikey={alpha_vantage_key}'
+    data_cci = pd.read_csv(url, index_col='time')
+    data_price = data.copy()
+    data_rsi = TA.STOCHRSI(data)
+    data_macd = TA.MACD(data)
+    data_stoch = TA.STOCH(data)
+    data_vzo = TA.VZO(data)
+    data = data.join(data_rsi, how='left') 
+    data = data.join(data_macd, how='left') 
+    data = data.join(data_stoch, how='left') 
+    data = data.join(data_vzo, how='left') 
+    #data = data.join(data_cci, how='left') 
+    data = data.join(data_sent, how='left')
+    data = data.drop(labels=['open', 'high', 'low', 'close', 'volume'], axis=1)
+    scaler = preprocessing.MinMaxScaler() 
+    scaled_values = scaler.fit_transform(data) 
+    data.loc[:,:] = scaled_values
+    data = data.join(data_price, how='left')
+    data.interpolate(axis='columns', inplace=True)
+    data.dropna(inplace=True)
+    return data
+def get_stock_category(stock):
+    url = f'https://financialmodelingprep.com/api/v3/profile/{stock}?apikey={fmp_key}'
+    data = requests.get(url).json()
+    sector = data[0]['sector']
+    cap = data[0]['mktCap']
+    if cap > 10_000_000_000:
+        cap = 'large'
+    elif cap < 10_000_000_000 and cap > 2_000_000_000:
+        cap = 'mid'
     else:
-        return 'Hold'
-#Load data into dataframe and stock dataframe
-stock_data = yf.Ticker(stock)
-stock_dataset = stock_data.history(period='10y')
-stock_DF = stock_dataset.copy()
-#Det indicators
-stock_DF = ss.StockDataFrame.retype(stock_DF)
-macdh = stock_DF['macdh']
-boll = stock_DF['boll']
-kdjk = stock_DF['kdjk']
-trix = stock_DF['trix']
-rsi = stock_DF['rsi_6']
-#add indicators to dataframe
-stock_dataset['RollingAvg'] = stock_dataset.Volume.rolling(20).mean()
-stock_dataset['RSI'] = rsi
-stock_dataset['MACDh'] = macdh
-stock_dataset['KDJ'] = kdjk
-stock_dataset['TRIX'] = trix
-stock_dataset = stock_dataset.dropna()
-#print(stock_dataset)
+        cap = 'small'
+    sector = sector.replace(' ', '')
+    category = f'{sector}_{cap}'
+    return category
+def predict(stock):
+    url = f'https://www.alphavantage.co/query?function=CONSUMER_SENTIMENT&datatype=csv&apikey={alpha_vantage_key}'
+    data_sent = pd.read_csv(url, index_col='timestamp')
+    data = get_and_clean_data(stock, data_sent)
+    category = get_stock_category(stock)
+    ratings = {
+        'mega buy':0,
+        'buy':0,
+        'hold':0,
+        'mega sell':0,
+        'sell':0
+    }
+    for filename in os.listdir('./classifiers'):
+        if fnmatch.fnmatch(filename, f'{category}*'):
+            classifier : KNeighborsClassifier = load(filename)
+            prediction = classifier.predict(data)
+            ratings[prediction['rating']] += 1
+    if list(ratings.values).count(max(ratings, key=ratings.get)) > 1:
+        return 1 # 1 == Hold
+    else:
+        return max(ratings, key=ratings.get)
+def plot_data(data: pd.DataFrame, stock):
+    buys = data.loc[lambda data: data['rating'] == 'buy']
+    mega_buys = data.loc[lambda data: data['rating'] == 'mega buy']
+    mega_sells = data.loc[lambda data: data['rating'] == 'mega sell']
+    sells = data.loc[lambda data: data['rating'] == 'sell']
+    plt.figure(figsize=(30, 14))
+    plt.plot(data.index, data.open)
+    plt.plot(mega_buys.index, mega_buys.open, 'g*')
+    plt.plot(buys.index, buys.open, 'go')
+    plt.plot(mega_sells.index, mega_sells.open, 'r*')
+    plt.plot(sells.index, sells.open, 'ro')
+    plt.xlabel('Date')
+    plt.ylabel('Open Price')
+    plt.title(stock)
+    ax = plt.gca()
+    ax.xaxis.set_minor_locator(dates.MonthLocator([1, 5, 9]))
+    ax.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
+    ax.xaxis.set_major_locator(dates.YearLocator())
+    ax.xaxis.set_major_formatter(dates.DateFormatter('%Y'))
+    #plt.gcf().autofmt_xdate()
+    plt.savefig(f'./figs/training_data/{stock}.pdf')
+    #plt.show()
 
-#Normalize Data
-stock_dataset["TRIX"]=((stock_dataset["TRIX"]-stock_dataset["TRIX"].min())/(stock_dataset["TRIX"].max()-stock_dataset["TRIX"].min()))*100
-stock_dataset["RollingAvg"]=((stock_dataset["RollingAvg"]-stock_dataset["RollingAvg"].min())/(stock_dataset["RollingAvg"].max()-stock_dataset["RollingAvg"].min()))*20
-stock_dataset["Volume"]=((stock_dataset["Volume"]-stock_dataset["Volume"].min())/(stock_dataset["Volume"].max()-stock_dataset["Volume"].min()))*100
-stock_dataset["KDJ"]=((stock_dataset["KDJ"]-stock_dataset["KDJ"].min())/(stock_dataset["KDJ"].max()-stock_dataset["KDJ"].min()))*100
-
-#calculate good buy times and add column to dataframe
-stock_dataset['Rating'] = stock_dataset.apply(lambda row: calcRating(row), axis=1)
-
-#Graph Data
-stock_dataset.plot.line(y='Close')
-#lines = stock_dataset.plot.line(y='Close')
-buyRating = stock_dataset.query("Rating == 'Buy'")
-#buyRating.plot(x=buyRating.index, y='Close', c='green', kind='scatter', sharex=True)
-sellRating = stock_dataset.query("Rating == 'Sell'")
-#sellRating.plot(x=sellRating.index, y='Close', c='red', kind='scatter', sharex=True)
-#plt.xticks(stock_dataset.index,stock_dataset['index'])
-plt.plot(buyRating.index, buyRating.Close, 'g*')
-plt.plot(sellRating.index, sellRating.Close, 'r*')
-plt.show()
-
-#Machine Learning
-stock_dataset = stock_dataset.dropna()
-y = stock_dataset['Rating']
-x = stock_dataset.drop(['Rating','Open','Close','High','Low'], axis=1)
-#print(x)
-
-#print(y)
-X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.10, random_state=1)
-# Create Decision Tree classifer object
-clf = tree.DecisionTreeClassifier()
-# Train Decision Tree Classifer
-clf = clf.fit(X_train,y_train)
-#Predict the response for test dataset
-y_pred = clf.predict(X_test)
-#print(y_pred)
-accuracy = accuracy_score(y_test, y_pred)*100
-#print(accuracy)
-dump(clf, 'TrainedModel.joblib')
+train()

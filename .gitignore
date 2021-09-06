@@ -1,4 +1,6 @@
-
-tester.py
-test_predictor.py
-predictorapi.py
+keys.txt
+classifiers/*
+data/*
+stats/*
+figs/predictions/*
+figs/training_data/*
