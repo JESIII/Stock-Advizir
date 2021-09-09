@@ -1,16 +1,21 @@
+from operator import index
 import os
 import fnmatch
 import datetime
 from datetime import datetime
 import json
+from numpy import NaN
 import pandas as pd
 from matplotlib import dates
 import matplotlib.pyplot as plt
 from joblib import dump, load
-from sklearn.neighbors import KNeighborsClassifier
+from pandas.core.frame import DataFrame
+# from sklearn.neighbors import KNeighborsClassifier
 from finta import TA
-#from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import plot_confusion_matrix
+from sklearn.ensemble import RandomForestClassifier
 #from sklearn.neural_network import MLPClassifier
+import yfinance as yf
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
@@ -19,13 +24,13 @@ import requests
 keys = open('./keys.txt', 'r').readlines()
 alpha_vantage_key = keys[0].split(':')[1].strip()
 fmp_key = keys[1].split(':')[1].strip()
+finnhub_key = keys[3].split(':')[1].strip()
 def add_ratings_to_data(df: pd.DataFrame):
     df['rating'] = 'hold'
-    df.loc[((df['open'] < df.shift(30)['open']) & (df['open'] < df.shift(100)['open']) & ((df.shift(30)['open'] - df['open']) / df['open'] * 100 > 20)), 'rating'] = 'mega buy'
-    df.loc[((df['open'] < df.shift(30)['open']) & (df['open'] < df.shift(100)['open']) & ((df.shift(30)['open'] - df['open']) / df['open'] * 100 > 3)), 'rating'] = 'buy'
-    df.loc[((df['open'] > df.shift(30)['open']) & (df['open'] > df.shift(100)['open']) & ((df['open'] - df.shift(30)['open']) / df['open'] * 100 > 20)), 'rating'] = 'mega sell'
-    df.loc[((df['open'] > df.shift(30)['open']) & (df['open'] > df.shift(100)['open']) & ((df['open'] - df.shift(30)['open']) / df['open'] * 100 > 3)), 'rating'] = 'sell'
-    df.drop(df.tail(100).index,inplace=True)
+    df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-30)['Open'] - df['Open']) / df['Open'] * 100 > 2)), 'rating'] = 'buy'
+    df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-30)['Open'] - df['Open']) / df['Open'] * 100 > 15)), 'rating'] = 'mega buy'
+    df.loc[((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-30)['Open']) / df['Open'] * 100 > 2)), 'rating'] = 'sell'
+    df.loc[((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-30)['Open']) / df['Open'] * 100 > 15)), 'rating'] = 'mega sell'
     return df
 
 def train():
@@ -33,9 +38,7 @@ def train():
     small_cap_url = f'https://financialmodelingprep.com/api/v3/stock-screener?marketCapMoreThan=300000000&marketCapLowerThan=2000000001&limit=3&apikey={fmp_key}'
     mid_cap_url = f'https://financialmodelingprep.com/api/v3/stock-screener?marketCapMoreThan=2000000000&marketCapLowerThan=10000000001&limit=3&apikey={fmp_key}'
     large_cap_url = f'https://financialmodelingprep.com/api/v3/stock-screener?marketCapMoreThan=10000000000&limit=3&apikey={fmp_key}'
-    # find api that can screen by those
 
-    # https://api-v2.intrinio.com/securities/screen
     # need to have top 3 of each sector(aka GICS group)/market cap pair
     training_stocks = {
         'Consumer Cyclical':[],
@@ -54,84 +57,105 @@ def train():
         'Services':[],
         'Conglomerates':[]
     }
-    url = f'https://www.alphavantage.co/query?function=CONSUMER_SENTIMENT&datatype=csv&apikey={alpha_vantage_key}'
-    data_sent = pd.read_csv(url, index_col='timestamp')
-    for sector in training_stocks:
-        url = small_cap_url + f'&sector={sector}'
-        r = requests.get(url)
-        data = r.json()
-        for stock in data:
-            training_stocks[sector].append(stock['symbol'])
-        url = mid_cap_url + f'&sector={sector}'
-        r = requests.get(url)
-        data = r.json()
-        for stock in data:
-            training_stocks[sector].append(stock['symbol'])
-        url = large_cap_url + f'&sector={sector}'
-        r = requests.get(url)
-        data = r.json()
-        for stock in data:
-            training_stocks[sector].append(stock['symbol'])
-        time.sleep(3)
-    # alpha vantage for stock data
+    # url = f'https://www.alphavantage.co/query?function=CONSUMER_SENTIMENT&datatype=csv&apikey={alpha_vantage_key}'
+    # data_sent = pd.read_csv(url, index_col='timestamp', parse_dates=True)
 
-    # we need take into account: 
-    # sentiment, country, rsi, macd, 
-    # earnings date, price, volume, fear index of overall market
+    # data_sent = pd.read_csv('./data/sentiment.csv', index_col='timestamp', parse_dates=True)
+
+    # for sector in training_stocks:
+    #     url = small_cap_url + f'&sector={sector}'
+    #     r = requests.get(url)
+    #     data = r.json()
+    #     for stock in data:
+    #         training_stocks[sector].append(stock['symbol'])
+    #     url = mid_cap_url + f'&sector={sector}'
+    #     r = requests.get(url)
+    #     data = r.json()
+    #     for stock in data:
+    #         training_stocks[sector].append(stock['symbol'])
+    #     url = large_cap_url + f'&sector={sector}'
+    #     r = requests.get(url)
+    #     data = r.json()
+    #     for stock in data:
+    #         training_stocks[sector].append(stock['symbol'])
+    #     time.sleep(1)
+
+    training_stocks = load('./training_stocks_dict.dict')
+    data_cci = pd.read_csv('https://stats.oecd.org/sdmx-json/data/DP_LIVE/.CCI.../OECD?contentType=csv&detail=code&separator=comma&csv-lang=en', index_col='TIME', usecols=['TIME', 'Value'], parse_dates=True)
+    data_cci.index.names = ['Date']
 
     for sector in training_stocks:
         stocks = training_stocks[sector]
         for stock in stocks:
-            time.sleep(30)
-            data = get_and_clean_data(stock, data_sent)
-            data = add_ratings_to_data(data)
-            data.dropna(inplace=True)
-            data.to_csv(f'./data/{stock}.csv')
-            category = get_stock_category(stock)
-            plot_data(data, stock)
-            x = data.drop(['open', 'high', 'low', 'close', 'volume', 'rating'], axis=1)
-            y = data['rating']
-            X_train, X_test, y_train, y_test = train_test_split(x, y, random_state=1337)
-            classifier = KNeighborsClassifier()
-            classifier.fit(X_train, y_train)
-            y_pred = classifier.predict(X_test)
-            accuracy = metrics.accuracy_score(y_test, y_pred)
-            stats_str = f'Classifier: {category}_{stock}\nAccuracy: {accuracy}\n----------------------\n'
-            file_name = f'{category}_{stock}'
-            print(stats_str)
-            open(f'./stats/{file_name}.txt', "w").write(stats_str)
-            dump(classifier, f'./classifiers/{file_name}.classifier', compress=True)
+            time.sleep(5)
+            try:
+                data = get_and_clean_data(stock, data_cci)
+                data = add_ratings_to_data(data)
+                data.drop(data.tail(100).index, inplace=True)
+                data.dropna(inplace=True)
+                data.to_csv(f'./data/{stock}.csv')
+                category = get_stock_category(stock)
+                plot_data(data, stock)
+                x = data.drop(['Open', 'High', 'Low', 'Close', 'Volume', 'rating'], axis=1)
+                y = data['rating']
+                X_train, X_test, y_train, y_test = train_test_split(x, y, random_state=1337)
+                classifier = RandomForestClassifier()
+                classifier.fit(X_train, y_train)
+                y_pred = classifier.predict(X_test)
+                accuracy = metrics.accuracy_score(y_test, y_pred)
+                y_test_adj = y_test.copy()
+                y_pred_adj = y_pred.copy()
+                for i, each in enumerate(y_test_adj):
+                    if each == 'mega buy':
+                        y_test_adj[i] = 'buy'
+                    elif each == 'mega sell':
+                        y_test_adj[i] = 'sell'
+                for i, each in enumerate(y_pred_adj):
+                    if each == 'mega buy':
+                        y_pred_adj[i] = 'buy'
+                    elif each == 'mega sell':
+                        y_pred_adj[i] = 'sell'
+                adjusted_accuracy = metrics.accuracy_score(y_test_adj, y_pred_adj)
+                plot_cm(classifier, X_test, y_test, stock)
+                stats_str = f'Classifier:{category}_{stock}\nAccuracy:{accuracy}\nAdjusted Accuracy Score:{adjusted_accuracy}'
+                file_name = f'{category}_{stock}'
+                print(stats_str + '\n----------------------')
+                open(f'./stats/{file_name}.txt', "w").write(stats_str)
+                dump(classifier, f'./classifiers/{file_name}.classifier', compress=True)
+            except Exception as e:
+                print(f'Something broke with {stock}:\n{e}')
             # when in predictor, run all 3 for each sector/cap and do majority voting to choose the result
-def get_and_clean_data(stock, data_sent):
-    time.sleep(5)
-    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&datatype=csv&adjusted=true&symbol={stock}&outputsize=full&apikey={alpha_vantage_key}'
-    data = pd.read_csv(url, index_col='timestamp')
-    url = f'https://www.alphavantage.co/query?function=CCI&time_period=60&datatype=csv&symbol={stock}&interval=daily&apikey={alpha_vantage_key}'
-    data_cci = pd.read_csv(url, index_col='time')
+def plot_cm(clf, X_test, y_test, stock):
+    plot_confusion_matrix(clf, X_test, y_test)
+    plt.savefig(f'./figs/confusion_matrix/{stock}.png')
+    plt.close()
+def get_and_clean_data(stock, data_cci):
+    yf_obj = yf.Ticker(stock)
+    data = yf_obj.history(period='max', interval='1d')
+    data.index = pd.to_datetime(data.index)
     data_price = data.copy()
     data_rsi = TA.STOCHRSI(data)
     data_macd = TA.MACD(data)
     data_stoch = TA.STOCH(data)
     data_vzo = TA.VZO(data)
-    data = data.join(data_rsi, how='left') 
-    data = data.join(data_macd, how='left') 
-    data = data.join(data_stoch, how='left') 
-    data = data.join(data_vzo, how='left') 
-    #data = data.join(data_cci, how='left') 
-    data = data.join(data_sent, how='left')
-    data = data.drop(labels=['open', 'high', 'low', 'close', 'volume'], axis=1)
+    data = data.join(data_cci, how='left', on='Date') 
+    data = data.join(data_rsi, how='left', on='Date') 
+    data = data.join(data_macd, how='left', on='Date') 
+    data = data.join(data_stoch, how='left', on='Date') 
+    data = data.join(data_vzo, how='left', on='Date')
+    data = data.drop(labels=['Open', 'High', 'Low', 'Close', 'Volume'], axis=1)
     scaler = preprocessing.MinMaxScaler() 
+    data.interpolate(axis=0, inplace=True)
     scaled_values = scaler.fit_transform(data) 
     data.loc[:,:] = scaled_values
-    data = data.join(data_price, how='left')
+    data = data.join(data_price.drop(labels=['Dividends', 'Stock Splits'], axis=1), how='left')
     data.interpolate(axis='columns', inplace=True)
-    data.dropna(inplace=True)
+    data.interpolate(axis=0, inplace=True)
     return data
 def get_stock_category(stock):
-    url = f'https://financialmodelingprep.com/api/v3/profile/{stock}?apikey={fmp_key}'
-    data = requests.get(url).json()
-    sector = data[0]['sector']
-    cap = data[0]['mktCap']
+    ticker = yf.Ticker(stock)
+    sector = ticker.info['sector']
+    cap = ticker.info['marketCap']
     if cap > 10_000_000_000:
         cap = 'large'
     elif cap < 10_000_000_000 and cap > 2_000_000_000:
@@ -168,11 +192,11 @@ def plot_data(data: pd.DataFrame, stock):
     mega_sells = data.loc[lambda data: data['rating'] == 'mega sell']
     sells = data.loc[lambda data: data['rating'] == 'sell']
     plt.figure(figsize=(30, 14))
-    plt.plot(data.index, data.open)
-    plt.plot(mega_buys.index, mega_buys.open, 'g*')
-    plt.plot(buys.index, buys.open, 'go')
-    plt.plot(mega_sells.index, mega_sells.open, 'r*')
-    plt.plot(sells.index, sells.open, 'ro')
+    plt.plot(data.index, data.Open)
+    plt.plot(mega_buys.index, mega_buys.Open, 'g*')
+    plt.plot(buys.index, buys.Open, 'go')
+    plt.plot(mega_sells.index, mega_sells.Open, 'r*')
+    plt.plot(sells.index, sells.Open, 'ro')
     plt.xlabel('Date')
     plt.ylabel('Open Price')
     plt.title(stock)
@@ -181,8 +205,6 @@ def plot_data(data: pd.DataFrame, stock):
     ax.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
     ax.xaxis.set_major_locator(dates.YearLocator())
     ax.xaxis.set_major_formatter(dates.DateFormatter('%Y'))
-    #plt.gcf().autofmt_xdate()
-    plt.savefig(f'./figs/training_data/{stock}.pdf')
-    #plt.show()
-
+    plt.savefig(f'./figs/training_data/{stock}.png')
+    plt.close()
 train()
