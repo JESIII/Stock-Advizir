@@ -13,7 +13,7 @@ from pandas.core.frame import DataFrame
 # from sklearn.neighbors import KNeighborsClassifier
 from finta import TA
 from sklearn.metrics import plot_confusion_matrix
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 #from sklearn.neural_network import MLPClassifier
 import yfinance as yf
 from sklearn import preprocessing
@@ -129,9 +129,9 @@ def plot_cm(clf, X_test, y_test, stock):
     plot_confusion_matrix(clf, X_test, y_test)
     plt.savefig(f'./figs/confusion_matrix/{stock}.png')
     plt.close()
-def get_and_clean_data(stock, data_cci):
+def get_and_clean_data(stock, data_cci, period='max'):
     yf_obj = yf.Ticker(stock)
-    data = yf_obj.history(period='max', interval='1d')
+    data = yf_obj.history(period=period, interval='1d')
     data.index = pd.to_datetime(data.index)
     data_price = data.copy()
     data_rsi = TA.STOCHRSI(data)
@@ -166,26 +166,22 @@ def get_stock_category(stock):
     category = f'{sector}_{cap}'
     return category
 def predict(stock):
-    url = f'https://www.alphavantage.co/query?function=CONSUMER_SENTIMENT&datatype=csv&apikey={alpha_vantage_key}'
-    data_sent = pd.read_csv(url, index_col='timestamp')
-    data = get_and_clean_data(stock, data_sent)
+    data_cci = pd.read_csv('https://stats.oecd.org/sdmx-json/data/DP_LIVE/.CCI.../OECD?contentType=csv&detail=code&separator=comma&csv-lang=en', index_col='TIME', usecols=['TIME', 'Value'], parse_dates=True)
+    data_cci.index.names = ['Date']
+    data : DataFrame = get_and_clean_data(stock, data_cci, '1y')
+    data_copy = data.copy()
     category = get_stock_category(stock)
-    ratings = {
-        'mega buy':0,
-        'buy':0,
-        'hold':0,
-        'mega sell':0,
-        'sell':0
-    }
+    estimators = []
     for filename in os.listdir('./classifiers'):
         if fnmatch.fnmatch(filename, f'{category}*'):
-            classifier : KNeighborsClassifier = load(filename)
-            prediction = classifier.predict(data)
-            ratings[prediction['rating']] += 1
-    if list(ratings.values).count(max(ratings, key=ratings.get)) > 1:
-        return 1 # 1 == Hold
-    else:
-        return max(ratings, key=ratings.get)
+            classifier : RandomForestClassifier = load(filename)
+            estimators.append((f'{stock}_{category}', classifier))
+    data = data.drop(labels=['Open', 'High', 'Low', 'Close', 'Volume'], axis=1)
+    classifier = VotingClassifier(estimators)
+    data_copy['rating'] = classifier.predict()
+    return json.dumps(json.loads(data_copy.reset_index().to_json(orient='records')), indent=2)
+    
+
 def plot_data(data: pd.DataFrame, stock):
     buys = data.loc[lambda data: data['rating'] == 'buy']
     mega_buys = data.loc[lambda data: data['rating'] == 'mega buy']
@@ -207,4 +203,3 @@ def plot_data(data: pd.DataFrame, stock):
     ax.xaxis.set_major_formatter(dates.DateFormatter('%Y'))
     plt.savefig(f'./figs/training_data/{stock}.png')
     plt.close()
-train()
