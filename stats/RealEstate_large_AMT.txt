@@ -1,0 +1,3 @@
+Classifier:RealEstate_large_AMT
+Accuracy:0.7120291616038882
+Adjusted Accuracy Score:0.7296476306196841

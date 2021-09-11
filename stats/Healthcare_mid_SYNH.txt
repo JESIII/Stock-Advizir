@@ -1,0 +1,3 @@
+Classifier:Healthcare_mid_SYNH
+Accuracy:0.7107180020811654
+Adjusted Accuracy Score:0.7273673257023934

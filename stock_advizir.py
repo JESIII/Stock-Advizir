@@ -1,10 +1,11 @@
+from math import nan
 from operator import index
 import os
 import fnmatch
 import datetime
 from datetime import datetime
 import json
-from numpy import NaN
+from numpy import NaN, greater
 import pandas as pd
 from matplotlib import dates
 import matplotlib.pyplot as plt
@@ -17,7 +18,9 @@ import yfinance as yf
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
+from scipy.signal import argrelextrema
 import time
+import numpy as np
 import requests
 keys = open('./keys.txt', 'r').readlines()
 alpha_vantage_key = keys[0].split(':')[1].strip()
@@ -25,10 +28,16 @@ fmp_key = keys[1].split(':')[1].strip()
 finnhub_key = keys[3].split(':')[1].strip()
 def add_ratings_to_data(df: pd.DataFrame):
     df['rating'] = 'hold'
-    df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-30)['Open'] - df['Open']) / df['Open'] * 100 > 2)), 'rating'] = 'buy'
-    df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-30)['Open'] - df['Open']) / df['Open'] * 100 > 10)), 'rating'] = 'mega buy'
-    df.loc[((df['Open'] > df.shift(-30)['Open']) & ((df['Open'] - df.shift(-30)['Open']) / df['Open'] * 100 > 2)), 'rating'] = 'sell'
-    df.loc[((df['Open'] > df.shift(-30)['Open']) & ((df['Open'] - df.shift(-30)['Open']) / df['Open'] * 100 > 8)), 'rating'] = 'mega sell'
+    df['local_max'] = df.iloc[argrelextrema(df['Open'].values, np.greater, order=30)[0]]['Open']
+    df['local_max'] = df['local_max'].notnull().astype('bool')
+    df['local_min'] = df.iloc[argrelextrema(df['Open'].values, np.less, order=30)[0]]['Open']
+    df['local_min'] = df['local_min'].notnull().astype('bool')
+    df.loc[(((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-100)['Open'] - df['Open']) / df['Open'] * 100 > 5)) | (df['local_min'] & ((df.shift(-100)['Open'] - df['Open']) / df['Open'] * 100 > 2))), 'rating'] = 'buy'
+    df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-100)['Open'] - df['Open']) / df['Open'] * 100 > 10)), 'rating'] = 'mega buy'
+    df.loc[((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 15)), 'rating'] = 'sell'
+    df.loc[(((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 20)) | (df['local_max'] & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 4))), 'rating'] = 'mega sell'
+    df.drop(labels=['local_max','local_min'], axis=1, inplace=True)
+    df.drop(df.tail(100).index, inplace=True)
     return df
 
 def train():
@@ -89,7 +98,6 @@ def train():
             try:
                 data = get_and_clean_data(stock, data_cci)
                 data = add_ratings_to_data(data)
-                data.drop(data.tail(100).index, inplace=True)
                 data.dropna(inplace=True)
                 data.to_csv(f'./data/{stock}.csv')
                 category = get_stock_category(stock)
@@ -97,7 +105,7 @@ def train():
                 x = data.drop(['Open', 'High', 'Low', 'Close', 'Volume', 'rating'], axis=1)
                 y = data['rating']
                 X_train, X_test, y_train, y_test = train_test_split(x, y, random_state=1337)
-                classifier = RandomForestClassifier()
+                classifier = RandomForestClassifier(random_state=1337, min_samples_split=4, bootstrap=False, n_jobs=-1)
                 classifier.fit(X_train, y_train)
                 y_pred = classifier.predict(X_test)
                 accuracy = metrics.accuracy_score(y_test, y_pred)
@@ -230,4 +238,3 @@ def plot_data(data: pd.DataFrame, stock, mode):
     elif mode == 'predicting':
         plt.savefig(f'./figs/prediction_data/{stock}.png')
     plt.close()
-train()

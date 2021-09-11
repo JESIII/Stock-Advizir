@@ -1,0 +1,3 @@
+Classifier:Utilities_mid_AQN
+Accuracy:0.7259126271693597
+Adjusted Accuracy Score:0.75344105326152

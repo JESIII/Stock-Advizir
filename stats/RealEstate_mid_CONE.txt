@@ -1,0 +1,3 @@
+Classifier:RealEstate_mid_CONE
+Accuracy:0.7382716049382716
+Adjusted Accuracy Score:0.7604938271604939

@@ -1,0 +1,3 @@
+Classifier:BasicMaterials_large_BHP
+Accuracy:0.7644539614561028
+Adjusted Accuracy Score:0.7821685808837843

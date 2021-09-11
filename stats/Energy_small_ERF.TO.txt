@@ -1,0 +1,3 @@
+Classifier:Energy_small_ERF.TO
+Accuracy:0.7277553083923155
+Adjusted Accuracy Score:0.7464610717896866

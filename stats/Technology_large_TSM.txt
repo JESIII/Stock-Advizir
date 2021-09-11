@@ -1,0 +1,3 @@
+Classifier:Technology_large_TSM
+Accuracy:0.7181107099879663
+Adjusted Accuracy Score:0.7379663056558363

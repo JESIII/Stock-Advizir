@@ -1,0 +1,3 @@
+Classifier:RealEstate_small_XHR
+Accuracy:0.7628205128205128
+Adjusted Accuracy Score:0.7745726495726496

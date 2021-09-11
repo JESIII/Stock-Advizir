@@ -1,0 +1,3 @@
+Classifier:ConsumerDefensive_mid_LW
+Accuracy:0.6530920060331825
+Adjusted Accuracy Score:0.6802413273001509

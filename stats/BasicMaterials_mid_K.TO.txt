@@ -1,0 +1,3 @@
+Classifier:BasicMaterials_mid_K.TO
+Accuracy:0.7376905041031653
+Adjusted Accuracy Score:0.7467760844079718

@@ -1,0 +1,3 @@
+Classifier:RealEstate_small_CUF-UN.TO
+Accuracy:0.7903118779031187
+Adjusted Accuracy Score:0.8045786330457864

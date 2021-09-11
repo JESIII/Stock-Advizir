@@ -1,0 +1,3 @@
+Classifier:Energy_mid_POU.TO
+Accuracy:0.7191011235955056
+Adjusted Accuracy Score:0.7374334713187463

@@ -1,0 +1,3 @@
+Classifier:Energy_mid_SSL
+Accuracy:0.7356548401226456
+Adjusted Accuracy Score:0.7542706964520368

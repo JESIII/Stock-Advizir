@@ -1,0 +1,3 @@
+Classifier:FinancialServices_large_V
+Accuracy:0.6888657648283039
+Adjusted Accuracy Score:0.714360041623309

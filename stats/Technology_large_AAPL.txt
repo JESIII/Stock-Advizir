@@ -1,0 +1,3 @@
+Classifier:Technology_large_AAPL
+Accuracy:0.6837758112094395
+Adjusted Accuracy Score:0.7067846607669617

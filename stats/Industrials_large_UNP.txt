@@ -1,0 +1,3 @@
+Classifier:Industrials_large_UNP
+Accuracy:0.7395087990717463
+Adjusted Accuracy Score:0.7605878940243667

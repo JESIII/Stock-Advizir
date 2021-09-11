@@ -1,0 +1,3 @@
+Classifier:Healthcare_large_HRC
+Accuracy:0.8164944843284889
+Adjusted Accuracy Score:0.826300122570478

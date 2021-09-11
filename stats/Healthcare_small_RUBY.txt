@@ -1,0 +1,3 @@
+Classifier:Healthcare_small_RUBY
+Accuracy:0.7002398081534772
+Adjusted Accuracy Score:0.7170263788968825

@@ -1,0 +1,3 @@
+Classifier:Industrials_small_ATSG
+Accuracy:0.7311993829541072
+Adjusted Accuracy Score:0.7416120323949094

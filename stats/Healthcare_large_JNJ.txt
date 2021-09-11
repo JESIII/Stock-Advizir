@@ -1,0 +1,3 @@
+Classifier:Healthcare_large_JNJ
+Accuracy:0.7865081815375116
+Adjusted Accuracy Score:0.8027168879283729

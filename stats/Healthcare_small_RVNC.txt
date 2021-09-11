@@ -1,0 +1,3 @@
+Classifier:Healthcare_small_RVNC
+Accuracy:0.6857949200376293
+Adjusted Accuracy Score:0.6999059266227657

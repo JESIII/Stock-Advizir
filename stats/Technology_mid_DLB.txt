@@ -1,0 +1,3 @@
+Classifier:Technology_mid_DLB
+Accuracy:0.7356418918918919
+Adjusted Accuracy Score:0.7487331081081081

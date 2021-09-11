@@ -1,0 +1,3 @@
+Classifier:ConsumerCyclical_large_BABA
+Accuracy:0.7390417940876657
+Adjusted Accuracy Score:0.7543323139653415

@@ -1,0 +1,3 @@
+Classifier:BasicMaterials_large_BBL
+Accuracy:0.696969696969697
+Adjusted Accuracy Score:0.7203682393555811

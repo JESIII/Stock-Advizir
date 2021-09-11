@@ -1,0 +1,3 @@
+Classifier:Technology_small_EPAY
+Accuracy:0.7075323038134258
+Adjusted Accuracy Score:0.7299086038449417

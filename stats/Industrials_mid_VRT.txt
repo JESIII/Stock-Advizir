@@ -1,0 +1,3 @@
+Classifier:Industrials_mid_VRT
+Accuracy:0.8014888337468983
+Adjusted Accuracy Score:0.8362282878411911

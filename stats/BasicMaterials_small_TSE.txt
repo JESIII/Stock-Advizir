@@ -1,0 +1,3 @@
+Classifier:BasicMaterials_small_TSE
+Accuracy:0.7137254901960784
+Adjusted Accuracy Score:0.7313725490196078

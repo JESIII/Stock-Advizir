@@ -1,8 +1,4 @@
 keys.txt
 classifiers/*
 data/*
-stats/*
-figs/predictions/*
-figs/training_data/*
-figs/confusion_matrix/*
-training_stocks_dict.dict
+*.png

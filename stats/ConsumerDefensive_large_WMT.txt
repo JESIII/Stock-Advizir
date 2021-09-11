@@ -1,0 +1,3 @@
+Classifier:ConsumerDefensive_large_WMT
+Accuracy:0.7900809368004132
+Adjusted Accuracy Score:0.8073015326330291

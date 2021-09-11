@@ -1,0 +1,3 @@
+Classifier:Technology_small_GDYN
+Accuracy:0.78419452887538
+Adjusted Accuracy Score:0.7933130699088146

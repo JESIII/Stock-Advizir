@@ -1,0 +1,3 @@
+Classifier:Utilities_mid_NI
+Accuracy:0.7954269877013684
+Adjusted Accuracy Score:0.8068595184479473

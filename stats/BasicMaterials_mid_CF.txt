@@ -1,0 +1,3 @@
+Classifier:BasicMaterials_mid_CF
+Accuracy:0.6989059080962801
+Adjusted Accuracy Score:0.7207877461706783

@@ -1,0 +1,3 @@
+Classifier:ConsumerCyclical_small_BKE
+Accuracy:0.7018301982714794
+Adjusted Accuracy Score:0.7219115404168785
