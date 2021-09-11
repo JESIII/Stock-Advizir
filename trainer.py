@@ -13,7 +13,7 @@ from pandas.core.frame import DataFrame
 # from sklearn.neighbors import KNeighborsClassifier
 from finta import TA
 from sklearn.metrics import plot_confusion_matrix
-from sklearn.ensemble import RandomForestClassifier, VotingClassifier
+from sklearn.ensemble import RandomForestClassifier
 #from sklearn.neural_network import MLPClassifier
 import yfinance as yf
 from sklearn import preprocessing
@@ -95,7 +95,7 @@ def train():
                 data.dropna(inplace=True)
                 data.to_csv(f'./data/{stock}.csv')
                 category = get_stock_category(stock)
-                plot_data(data, stock)
+                plot_data(data, stock, mode='training')
                 x = data.drop(['Open', 'High', 'Low', 'Close', 'Volume', 'rating'], axis=1)
                 y = data['rating']
                 X_train, X_test, y_train, y_test = train_test_split(x, y, random_state=1337)
@@ -171,18 +171,44 @@ def predict(stock):
     data : DataFrame = get_and_clean_data(stock, data_cci, '1y')
     data_copy = data.copy()
     category = get_stock_category(stock)
-    estimators = []
+    classifiers = []
     for filename in os.listdir('./classifiers'):
         if fnmatch.fnmatch(filename, f'{category}*'):
-            classifier : RandomForestClassifier = load(filename)
-            estimators.append((f'{stock}_{category}', classifier))
+            classifier : RandomForestClassifier = load(f'./classifiers/{filename}')
+            classifiers.append(classifier)
     data = data.drop(labels=['Open', 'High', 'Low', 'Close', 'Volume'], axis=1)
-    classifier = VotingClassifier(estimators)
-    data_copy['rating'] = classifier.predict()
+    predictions = []
+    for classifier in classifiers:
+        predictions.append(classifier.predict(data)) 
+    prediction = []
+    for i in range(len(predictions[0])):
+        ratings = {
+        'buy':0,
+        'hold':0,
+        'mega buy':0,
+        'mega sell':0,
+        'sell':0
+        }
+        if len(predictions) >= 3:
+            ratings[predictions[0][i]] += 1
+            ratings[predictions[1][i]] += 1
+            ratings[predictions[2][i]] += 1
+            prediction.append(max(ratings, key=ratings.get))
+        elif len(predictions) == 2:
+            if ratings[predictions[0][i]] == ratings[predictions[1][i]]:
+                prediction.append(ratings[predictions[0][i]])
+            else:
+                prediction.append('hold')
+        elif len(predictions) == 1:
+            prediction.append(ratings[predictions[0][i]])
+        else:
+            prediction.append('hold')
+    data_copy['rating'] = prediction
+    plot_data(data_copy, stock, mode='predicting')
     return json.dumps(json.loads(data_copy.reset_index().to_json(orient='records')), indent=2)
     
 
-def plot_data(data: pd.DataFrame, stock):
+def plot_data(data: pd.DataFrame, stock, mode):
     buys = data.loc[lambda data: data['rating'] == 'buy']
     mega_buys = data.loc[lambda data: data['rating'] == 'mega buy']
     mega_sells = data.loc[lambda data: data['rating'] == 'mega sell']
@@ -201,5 +227,10 @@ def plot_data(data: pd.DataFrame, stock):
     ax.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
     ax.xaxis.set_major_locator(dates.YearLocator())
     ax.xaxis.set_major_formatter(dates.DateFormatter('%Y'))
-    plt.savefig(f'./figs/training_data/{stock}.png')
+    if mode == 'training':
+        plt.savefig(f'./figs/training_data/{stock}.png')
+    elif mode == 'predicting':
+        plt.savefig(f'./figs/prediction_data/{stock}.png')
     plt.close()
+predict('amc')
+predict('gme')
