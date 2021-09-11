@@ -1,3 +1,3 @@
 Classifier:RealEstate_large_PLD
-Accuracy:0.7222557297949337
-Adjusted Accuracy Score:0.7445717732207479
+Accuracy:0.6734016887816646
+Adjusted Accuracy Score:0.6875753920386007

@@ -1,3 +1,3 @@
 Classifier:Utilities_mid_UGI
-Accuracy:0.8095155106308818
-Adjusted Accuracy Score:0.82345765074939
+Accuracy:0.7666434297664692
+Adjusted Accuracy Score:0.7786685256186825

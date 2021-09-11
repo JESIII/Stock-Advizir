@@ -1,3 +1,3 @@
 Classifier:RealEstate_large_CCI
-Accuracy:0.7278069904113826
-Adjusted Accuracy Score:0.7432725023198268
+Accuracy:0.6724404577791525
+Adjusted Accuracy Score:0.6913083823074544

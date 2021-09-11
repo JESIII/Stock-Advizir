@@ -1,3 +1,3 @@
 Classifier:ConsumerCyclical_small_EVRI
-Accuracy:0.7085537918871252
-Adjusted Accuracy Score:0.722663139329806
+Accuracy:0.6397707231040565
+Adjusted Accuracy Score:0.6596119929453262

@@ -1,3 +1,3 @@
 Classifier:CommunicationServices_large_GOOGL
-Accuracy:0.7357259380097879
-Adjusted Accuracy Score:0.7524469820554649
+Accuracy:0.6537520391517129
+Adjusted Accuracy Score:0.6761827079934747

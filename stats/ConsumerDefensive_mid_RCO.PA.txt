@@ -1,3 +1,3 @@
 Classifier:ConsumerDefensive_mid_RCO.PA
-Accuracy:0.7140953015661446
-Adjusted Accuracy Score:0.7324225258247251
+Accuracy:0.627790736421193
+Adjusted Accuracy Score:0.6501166277907364

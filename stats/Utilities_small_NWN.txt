@@ -1,3 +1,3 @@
 Classifier:Utilities_small_NWN
-Accuracy:0.78882096069869
-Adjusted Accuracy Score:0.8038427947598253
+Accuracy:0.7117903930131004
+Adjusted Accuracy Score:0.7278602620087337

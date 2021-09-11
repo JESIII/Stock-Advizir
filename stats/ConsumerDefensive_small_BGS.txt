@@ -1,3 +1,3 @@
 Classifier:ConsumerDefensive_small_BGS
-Accuracy:0.7472852912142152
-Adjusted Accuracy Score:0.7571569595261599
+Accuracy:0.6480750246791708
+Adjusted Accuracy Score:0.6702862783810464

@@ -1,3 +1,3 @@
 Classifier:RealEstate_small_PMT
-Accuracy:0.7614095898324668
-Adjusted Accuracy Score:0.78105141536684
+Accuracy:0.6920854997111496
+Adjusted Accuracy Score:0.7094165222414789

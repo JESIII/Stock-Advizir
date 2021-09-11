@@ -15,44 +15,57 @@ def auto_trade(stocks):
     for stock in stocks:
         prediction = pd.read_json(predict(stock), IndexCol='timestamp', keep_default_dates=True)
         if prediction.tail(1)['rating'] == 'buy':
-            pass
+            order = REST.submit_order(symbol=stock, side='buy', type='market', notional=2500)
+            if order != None:
+                print(order)
+            else:
+                print(f'Buy order didn\'t go through for {stock}')
         elif prediction.tail(1)['rating'] == 'mega buy':
-            pass
+            order = REST.submit_order(symbol=stock, side='buy', type='market', notional=5000)
+            if order != None:
+                print(order)
+            else:
+                print(f'Mega buy order didn\'t go through for {stock}')
         elif prediction.tail(1)['rating'] == 'sell':
-            pass
+            positions = REST.list_positions()
+            qty = positions['qty']
+            order = REST.submit_order(symbol=stock, side='sell', type='market', qty=qty*.75)
+            if order != None:
+                print(order)
+            else:
+                print(f'Sell order didn\'t go through for {stock}')
         elif prediction.tail(1)['rating'] == 'mega sell':
-            pass
+            positions = REST.list_positions()
+            qty = positions['qty']
+            order = REST.submit_order(symbol=stock, side='sell', type='market', qty=qty)
+            if order != None:
+                print(order)
+            else:
+                print(f'Mega sell order didn\'t go through for {stock}')
         time.sleep(10)
-    pass
-def __main__():
+    print('Done autotrading for the day')
+
+if __name__ == '__main__':
     done = False
     stocks = ['amd', 'msft', 'amzn', 'msft', 'spce', 'mu', 'nvda', 'intc', 
     'dkng', 'bac', 'v', 'coin', 'gme', 'amc', 'hood', 'aal', 'mgm', 'hd', 
     'logi', 'wmt', 'spot', 'fb', 'ge', 'gcg', 'tlry', 't', 'pltr', 'nclh', 
     'pfe']
     while True:
-        if not done and datetime.datetime.now(tz=pytz.utc).hour == 15:
+        if not done and datetime.datetime.now(tz=pytz.utc).hour == 15 and datetime.weekday < 5:
             auto_trade(stocks)
             done = True
         if datetime.datetime.now(tz=pytz.utc).hour != 15:
             done = False
         time.sleep(86400)
 
-predict('amc')
-time.sleep(10)
-predict('hood')
-time.sleep(10)
-predict('fb')
-time.sleep(10)
-predict('tlry')
-time.sleep(10)
-predict('pltr')
-time.sleep(10)
-predict('nclh')
-time.sleep(10)
-predict('pfe')
-time.sleep(10)
-predict('wmt')
-time.sleep(10)
-predict('intc')
-time.sleep(10)
+# stocks = ['amd', 'msft', 'amzn', 'msft', 'spce', 'mu', 'nvda', 'intc', 
+#     'dkng', 'bac', 'v', 'coin', 'gme', 'amc', 'hood', 'aal', 'mgm', 'hd', 
+#     'logi', 'wmt', 'spot', 'fb', 'ge', 'cgc', 't', 'pltr', 'nclh', 
+#     'pfe']
+# for stock in stocks:
+#     time.sleep(10)
+#     try:
+#         predict(stock)
+#     except:
+#         print(f'{stock} didn\'t work.')

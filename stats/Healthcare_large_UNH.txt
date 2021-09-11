@@ -1,3 +1,3 @@
 Classifier:Healthcare_large_UNH
-Accuracy:0.743693025227899
-Adjusted Accuracy Score:0.7644689421242316
+Accuracy:0.7008691965232139
+Adjusted Accuracy Score:0.7233411066355735

@@ -28,14 +28,14 @@ fmp_key = keys[1].split(':')[1].strip()
 finnhub_key = keys[3].split(':')[1].strip()
 def add_ratings_to_data(df: pd.DataFrame):
     df['rating'] = 'hold'
-    df['local_max'] = df.iloc[argrelextrema(df['Open'].values, np.greater, order=30)[0]]['Open']
+    df['local_max'] = df.iloc[argrelextrema(df['Open'].values, np.greater, order=50)[0]]['Open']
     df['local_max'] = df['local_max'].notnull().astype('bool')
-    df['local_min'] = df.iloc[argrelextrema(df['Open'].values, np.less, order=30)[0]]['Open']
+    df['local_min'] = df.iloc[argrelextrema(df['Open'].values, np.less, order=50)[0]]['Open']
     df['local_min'] = df['local_min'].notnull().astype('bool')
-    df.loc[(((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-100)['Open'] - df['Open']) / df['Open'] * 100 > 5)) | (df['local_min'] & ((df.shift(-100)['Open'] - df['Open']) / df['Open'] * 100 > 2))), 'rating'] = 'buy'
-    df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-100)['Open'] - df['Open']) / df['Open'] * 100 > 10)), 'rating'] = 'mega buy'
-    df.loc[((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 15)), 'rating'] = 'sell'
-    df.loc[(((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 20)) | (df['local_max'] & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 4))), 'rating'] = 'mega sell'
+    df.loc[(((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 3) & ~df['local_max']) | (df['local_min'] & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 3))), 'rating'] = 'buy'
+    df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 10)), 'rating'] = 'mega buy'
+    df.loc[((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 5)), 'rating'] = 'sell'
+    df.loc[(((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 10)  & ~df['local_min']) | (df['local_max'] & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 5))), 'rating'] = 'mega sell'
     df.drop(labels=['local_max','local_min'], axis=1, inplace=True)
     df.drop(df.tail(100).index, inplace=True)
     return df
@@ -233,6 +233,7 @@ def plot_data(data: pd.DataFrame, stock, mode):
     ax.xaxis.set_minor_formatter(dates.DateFormatter('%b'))
     ax.xaxis.set_major_locator(dates.YearLocator())
     ax.xaxis.set_major_formatter(dates.DateFormatter('%Y'))
+    plt.gcf().autofmt_xdate()
     if mode == 'training':
         plt.savefig(f'./figs/training_data/{stock}.png')
     elif mode == 'predicting':

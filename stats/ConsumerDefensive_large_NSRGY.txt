@@ -1,3 +1,3 @@
 Classifier:ConsumerDefensive_large_NSRGY
-Accuracy:0.7737119437939111
-Adjusted Accuracy Score:0.7848360655737705
+Accuracy:0.7101873536299765
+Adjusted Accuracy Score:0.7224824355971897

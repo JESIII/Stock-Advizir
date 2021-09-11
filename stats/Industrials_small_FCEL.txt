@@ -1,3 +1,3 @@
 Classifier:Industrials_small_FCEL
-Accuracy:0.6833110814419225
-Adjusted Accuracy Score:0.70173564753004
+Accuracy:0.635781041388518
+Adjusted Accuracy Score:0.6563417890520694

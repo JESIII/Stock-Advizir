@@ -1,3 +1,3 @@
 Classifier:CommunicationServices_small_MDP
-Accuracy:0.7787060423547698
-Adjusted Accuracy Score:0.7880318632212939
+Accuracy:0.6883621527103166
+Adjusted Accuracy Score:0.7105109772683116

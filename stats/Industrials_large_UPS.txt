@@ -1,3 +1,3 @@
 Classifier:Industrials_large_UPS
-Accuracy:0.7856677524429967
-Adjusted Accuracy Score:0.7986970684039087
+Accuracy:0.7123778501628665
+Adjusted Accuracy Score:0.7214983713355049
