@@ -33,8 +33,8 @@ def add_ratings_to_data(df: pd.DataFrame):
     df['local_min'] = df.iloc[argrelextrema(df['Open'].values, np.less, order=50)[0]]['Open']
     df['local_min'] = df['local_min'].notnull().astype('bool')
     df.loc[(((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 3) & ~df['local_max']) | (df['local_min'] & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 3))), 'rating'] = 'buy'
-    df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 10)), 'rating'] = 'mega buy'
-    df.loc[((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 5)), 'rating'] = 'sell'
+    df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 10) & ~df['local_max']), 'rating'] = 'mega buy'
+    df.loc[((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 5) & ~df['local_min']), 'rating'] = 'sell'
     df.loc[(((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 10)  & ~df['local_min']) | (df['local_max'] & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 5))), 'rating'] = 'mega sell'
     df.drop(labels=['local_max','local_min'], axis=1, inplace=True)
     df.drop(df.tail(100).index, inplace=True)

@@ -52,10 +52,10 @@ if __name__ == '__main__':
     'logi', 'wmt', 'spot', 'fb', 'ge', 'gcg', 'tlry', 't', 'pltr', 'nclh', 
     'pfe']
     while True:
-        if not done and datetime.datetime.now(tz=pytz.utc).hour == 15 and datetime.weekday < 5:
+        if not done and datetime.now(tz=pytz.utc).hour == 15 and datetime.weekday < 5:
             auto_trade(stocks)
             done = True
-        if datetime.datetime.now(tz=pytz.utc).hour != 15:
+        if datetime.now(tz=pytz.utc).hour != 15:
             done = False
         time.sleep(86400)
 
