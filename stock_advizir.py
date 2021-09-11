@@ -10,11 +10,9 @@ from matplotlib import dates
 import matplotlib.pyplot as plt
 from joblib import dump, load
 from pandas.core.frame import DataFrame
-# from sklearn.neighbors import KNeighborsClassifier
 from finta import TA
 from sklearn.metrics import plot_confusion_matrix
 from sklearn.ensemble import RandomForestClassifier
-#from sklearn.neural_network import MLPClassifier
 import yfinance as yf
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
@@ -28,9 +26,9 @@ finnhub_key = keys[3].split(':')[1].strip()
 def add_ratings_to_data(df: pd.DataFrame):
     df['rating'] = 'hold'
     df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-30)['Open'] - df['Open']) / df['Open'] * 100 > 2)), 'rating'] = 'buy'
-    df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-30)['Open'] - df['Open']) / df['Open'] * 100 > 15)), 'rating'] = 'mega buy'
-    df.loc[((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-30)['Open']) / df['Open'] * 100 > 2)), 'rating'] = 'sell'
-    df.loc[((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-30)['Open']) / df['Open'] * 100 > 15)), 'rating'] = 'mega sell'
+    df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-30)['Open'] - df['Open']) / df['Open'] * 100 > 10)), 'rating'] = 'mega buy'
+    df.loc[((df['Open'] > df.shift(-30)['Open']) & ((df['Open'] - df.shift(-30)['Open']) / df['Open'] * 100 > 2)), 'rating'] = 'sell'
+    df.loc[((df['Open'] > df.shift(-30)['Open']) & ((df['Open'] - df.shift(-30)['Open']) / df['Open'] * 100 > 8)), 'rating'] = 'mega sell'
     return df
 
 def train():
@@ -232,5 +230,4 @@ def plot_data(data: pd.DataFrame, stock, mode):
     elif mode == 'predicting':
         plt.savefig(f'./figs/prediction_data/{stock}.png')
     plt.close()
-predict('amc')
-predict('gme')
+train()
