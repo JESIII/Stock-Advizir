@@ -1,3 +1,3 @@
 Classifier:Technology_small_NTCT
-Accuracy:0.6295819935691318
-Adjusted Accuracy Score:0.6482315112540193
+Accuracy:0.6366559485530546
+Adjusted Accuracy Score:0.6517684887459807

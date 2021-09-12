@@ -1,3 +1,3 @@
 Classifier:Technology_small_SQIA3.SA
-Accuracy:0.6570135746606335
-Adjusted Accuracy Score:0.6850678733031674
+Accuracy:0.6633484162895927
+Adjusted Accuracy Score:0.685972850678733

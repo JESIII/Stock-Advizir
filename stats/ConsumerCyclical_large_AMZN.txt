@@ -1,3 +1,3 @@
 Classifier:ConsumerCyclical_large_AMZN
-Accuracy:0.6223672500741619
-Adjusted Accuracy Score:0.6449124888757045
+Accuracy:0.6447212336892052
+Adjusted Accuracy Score:0.6613285883748518

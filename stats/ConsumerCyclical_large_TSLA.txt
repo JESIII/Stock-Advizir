@@ -1,3 +1,3 @@
 Classifier:ConsumerCyclical_large_TSLA
-Accuracy:0.6375
-Adjusted Accuracy Score:0.681875
+Accuracy:0.6377264209868831
+Adjusted Accuracy Score:0.6758276077451593

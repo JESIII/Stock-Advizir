@@ -1,3 +1,3 @@
 Classifier:Energy_mid_TPL
-Accuracy:0.7396143907771815
-Adjusted Accuracy Score:0.759292387199364
+Accuracy:0.746372490558537
+Adjusted Accuracy Score:0.7608825283243887

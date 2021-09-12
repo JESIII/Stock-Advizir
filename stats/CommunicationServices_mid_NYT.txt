@@ -1,3 +1,3 @@
 Classifier:CommunicationServices_mid_NYT
-Accuracy:0.6767676767676768
-Adjusted Accuracy Score:0.7011494252873564
+Accuracy:0.6889585510275166
+Adjusted Accuracy Score:0.708289794496691

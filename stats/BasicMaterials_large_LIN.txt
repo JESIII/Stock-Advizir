@@ -1,3 +1,3 @@
 Classifier:BasicMaterials_large_LIN
-Accuracy:0.6694592536176694
-Adjusted Accuracy Score:0.6895151053566895
+Accuracy:0.7032241685707032
+Adjusted Accuracy Score:0.7174409748667174

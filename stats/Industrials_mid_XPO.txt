@@ -1,3 +1,3 @@
 Classifier:Industrials_mid_XPO
-Accuracy:0.638247946812671
+Accuracy:0.6386390301134142
 Adjusted Accuracy Score:0.6589753617520532

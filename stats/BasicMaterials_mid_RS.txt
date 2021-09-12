@@ -1,3 +1,3 @@
 Classifier:BasicMaterials_mid_RS
-Accuracy:0.6446438281674823
-Adjusted Accuracy Score:0.6693855356171833
+Accuracy:0.6549755301794453
+Adjusted Accuracy Score:0.6721044045676998

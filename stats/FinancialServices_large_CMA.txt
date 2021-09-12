@@ -1,3 +1,3 @@
 Classifier:FinancialServices_large_CMA
-Accuracy:0.7327502429543246
-Adjusted Accuracy Score:0.7529640427599611
+Accuracy:0.7416909620991253
+Adjusted Accuracy Score:0.756268221574344

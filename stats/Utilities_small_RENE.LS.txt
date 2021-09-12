@@ -1,3 +1,3 @@
 Classifier:Utilities_small_RENE.LS
-Accuracy:0.778816199376947
-Adjusted Accuracy Score:0.7834890965732088
+Accuracy:0.8011422637590861
+Adjusted Accuracy Score:0.8073727933541017

@@ -1,3 +1,3 @@
 Classifier:FinancialServices_small_BCP.LS
-Accuracy:0.6580276001346348
-Adjusted Accuracy Score:0.6839447997307304
+Accuracy:0.6576910131268933
+Adjusted Accuracy Score:0.6802423426455739

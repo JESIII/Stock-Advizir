@@ -32,7 +32,7 @@ def add_ratings_to_data(df: pd.DataFrame):
     df['local_max'] = df['local_max'].notnull().astype('bool')
     df['local_min'] = df.iloc[argrelextrema(df['Open'].values, np.less, order=50)[0]]['Open']
     df['local_min'] = df['local_min'].notnull().astype('bool')
-    df.loc[(((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 3) & ~df['local_max']) | (df['local_min'] & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 3))), 'rating'] = 'buy'
+    df.loc[(((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 3) & ~df['local_max']) | (df['local_min'] & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 2))), 'rating'] = 'buy'
     df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 10) & ~df['local_max']), 'rating'] = 'mega buy'
     df.loc[((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 5) & ~df['local_min']), 'rating'] = 'sell'
     df.loc[(((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 10)  & ~df['local_min']) | (df['local_max'] & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 5))), 'rating'] = 'mega sell'
@@ -105,7 +105,7 @@ def train():
                 x = data.drop(['Open', 'High', 'Low', 'Close', 'Volume', 'rating'], axis=1)
                 y = data['rating']
                 X_train, X_test, y_train, y_test = train_test_split(x, y, random_state=1337)
-                classifier = RandomForestClassifier(random_state=1337, min_samples_split=4, bootstrap=False, n_jobs=-1)
+                classifier = RandomForestClassifier(random_state=1337, min_samples_split=4, bootstrap=False, n_jobs=-1, n_estimators=50, max_depth=20)
                 classifier.fit(X_train, y_train)
                 y_pred = classifier.predict(X_test)
                 accuracy = metrics.accuracy_score(y_test, y_pred)
@@ -127,7 +127,7 @@ def train():
                 file_name = f'{category}_{stock}'
                 print(stats_str + '\n----------------------')
                 open(f'./stats/{file_name}.txt', "w").write(stats_str)
-                dump(classifier, f'./classifiers/{file_name}.classifier', compress=True)
+                dump(classifier, f'./classifiers/{file_name}.classifier', compress=3)
             except Exception as e:
                 print(f'Something broke with {stock}:\n{e}')
             # when in predictor, run all 3 for each sector/cap and do majority voting to choose the result
@@ -239,3 +239,4 @@ def plot_data(data: pd.DataFrame, stock, mode):
     elif mode == 'predicting':
         plt.savefig(f'./figs/prediction_data/{stock}.png')
     plt.close()
+train()

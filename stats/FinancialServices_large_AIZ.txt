@@ -1,3 +1,3 @@
 Classifier:FinancialServices_large_AIZ
-Accuracy:0.6752373417721519
-Adjusted Accuracy Score:0.6894778481012658
+Accuracy:0.711629746835443
+Adjusted Accuracy Score:0.7223101265822784

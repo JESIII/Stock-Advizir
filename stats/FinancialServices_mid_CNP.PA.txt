@@ -1,3 +1,3 @@
 Classifier:FinancialServices_mid_CNP.PA
-Accuracy:0.6647708263633322
-Adjusted Accuracy Score:0.6838407494145199
+Accuracy:0.6928738708598193
+Adjusted Accuracy Score:0.7092673134827702

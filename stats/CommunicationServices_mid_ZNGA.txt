@@ -1,3 +1,3 @@
 Classifier:CommunicationServices_mid_ZNGA
-Accuracy:0.6347569955817378
-Adjusted Accuracy Score:0.6597938144329897
+Accuracy:0.6575846833578792
+Adjusted Accuracy Score:0.6811487481590575

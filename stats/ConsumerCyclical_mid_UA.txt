@@ -1,3 +1,3 @@
 Classifier:ConsumerCyclical_mid_UA
-Accuracy:0.647594278283485
-Adjusted Accuracy Score:0.6749024707412223
+Accuracy:0.6605981794538361
+Adjusted Accuracy Score:0.6892067620286085

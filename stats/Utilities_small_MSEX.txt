@@ -1,3 +1,3 @@
 Classifier:Utilities_small_MSEX
-Accuracy:0.7213827364934796
-Adjusted Accuracy Score:0.7447733388532395
+Accuracy:0.7466363071827778
+Adjusted Accuracy Score:0.7654729869592217

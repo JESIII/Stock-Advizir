@@ -1,3 +1,3 @@
 Classifier:ConsumerCyclical_small_SBH
-Accuracy:0.6263683960019039
-Adjusted Accuracy Score:0.6534983341266064
+Accuracy:0.6463588767253688
+Adjusted Accuracy Score:0.6658733936220848

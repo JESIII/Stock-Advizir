@@ -1,3 +1,3 @@
 Classifier:Industrials_mid_MIDD
-Accuracy:0.6812411847672779
-Adjusted Accuracy Score:0.7038081805359662
+Accuracy:0.6918194640338505
+Adjusted Accuracy Score:0.7108603667136812

@@ -1,3 +1,3 @@
 Classifier:RealEstate_mid_URW.AS
-Accuracy:0.664859282210173
-Adjusted Accuracy Score:0.6904208623805835
+Accuracy:0.6857733023495998
+Adjusted Accuracy Score:0.7053963335915311

@@ -1,3 +1,3 @@
 Classifier:Technology_mid_DOX
-Accuracy:0.679483235927407
-Adjusted Accuracy Score:0.6973239003383574
+Accuracy:0.6988618886496463
+Adjusted Accuracy Score:0.7093202091664104

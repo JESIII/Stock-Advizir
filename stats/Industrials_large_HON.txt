@@ -1,3 +1,3 @@
 Classifier:Industrials_large_HON
-Accuracy:0.6705666053819155
-Adjusted Accuracy Score:0.6949690790573291
+Accuracy:0.6837706836035434
+Adjusted Accuracy Score:0.6998161457462811
