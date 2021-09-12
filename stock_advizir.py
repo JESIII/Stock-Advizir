@@ -239,4 +239,3 @@ def plot_data(data: pd.DataFrame, stock, mode):
     elif mode == 'predicting':
         plt.savefig(f'./figs/prediction_data/{stock}.png')
     plt.close()
-train()
