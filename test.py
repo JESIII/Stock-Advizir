@@ -52,6 +52,7 @@ if __name__ == '__main__':
     'logi', 'wmt', 'spot', 'fb', 'ge', 'gcg', 'tlry', 't', 'pltr', 'nclh', 
     'pfe']
     while True:
+        print('Stock advizir autotrade running...')
         if not done and datetime.now(tz=pytz.utc).hour == 15 and datetime.weekday < 5:
             auto_trade(stocks)
             done = True
