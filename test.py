@@ -4,62 +4,77 @@ import pandas as pd
 import time
 import alpaca_trade_api as ata
 from datetime import datetime
+import math
 import pytz
 import json
 from alpaca_trade_api.rest import REST, TimeFrame
 keys = open('./keys.txt', 'r').readlines()
 paca_key_id = keys[4].split(':')[1].strip()
 paca_secret = keys[5].split(':')[1].strip()
-api = REST(key_id=paca_key_id, secret_key=paca_secret)
+api = REST(key_id=paca_key_id, secret_key=paca_secret, base_url='https://paper-api.alpaca.markets')
 def auto_trade(stocks):
     for stock in stocks:
-        prediction = pd.read_json(predict(stock), IndexCol='timestamp', keep_default_dates=True)
-        if prediction.tail(1)['rating'] == 'buy':
-            order = REST.submit_order(symbol=stock, side='buy', type='market', notional=2500)
-            if order != None:
-                print(order)
-            else:
-                print(f'Buy order didn\'t go through for {stock}')
-        elif prediction.tail(1)['rating'] == 'mega buy':
-            order = REST.submit_order(symbol=stock, side='buy', type='market', notional=5000)
-            if order != None:
-                print(order)
-            else:
-                print(f'Mega buy order didn\'t go through for {stock}')
-        elif prediction.tail(1)['rating'] == 'sell':
-            positions = REST.list_positions()
-            qty = positions['qty']
-            order = REST.submit_order(symbol=stock, side='sell', type='market', qty=qty*.75)
-            if order != None:
-                print(order)
-            else:
-                print(f'Sell order didn\'t go through for {stock}')
-        elif prediction.tail(1)['rating'] == 'mega sell':
-            positions = REST.list_positions()
-            qty = positions['qty']
-            order = REST.submit_order(symbol=stock, side='sell', type='market', qty=qty)
-            if order != None:
-                print(order)
-            else:
-                print(f'Mega sell order didn\'t go through for {stock}')
-        time.sleep(10)
-    print('Done autotrading for the day')
+        prediction = None
+        try:
+            prediction = pd.read_json(predict(stock), keep_default_dates=True)
+        except Exception as e:
+            print(f'Error with prediction: {e}')
+            continue
+        prediction.set_index('Date', inplace=True)
+        last_row = prediction.iloc[-1]
+        if last_row['rating'] == 'buy':
+            try:
+                qty = 2500 / last_row['Open']
+                order = api.submit_order(symbol=stock.upper(), qty=int(qty), side='buy', type='market', time_in_force='day')
+                if order != None:
+                    print(order)
+            except Exception as e:
+                print(f'Buy order didn\'t go through for {stock}: {e}')
+        elif last_row['rating'] == 'mega buy':
+            try:
+                qty = 5000 / last_row['Open']
+                order = api.submit_order(symbol=stock.upper(), qty=int(qty), side='buy', type='market', time_in_force='day')
+                if order != None:
+                    print(order)
+            except Exception as e:
+                print(f'Mega buy order didn\'t go through for {stock}: {e}')
+        elif last_row['rating'] == 'sell':
+            try:
+                position = api.get_position(stock.upper())
+                order = api.submit_order(symbol=stock.upper(), side='sell', type='market', qty=math.floor(position*.75), time_in_force='day')
+                if order != None:
+                    print(order)
+            except Exception as e:
+                print(f'Sell order didn\'t go through for {stock}: {e}')
+        elif last_row['rating'] == 'mega sell':
+            try:
+                position = api.get_position(stock.upper())
+                order = api.submit_order(symbol=stock.upper(), side='sell', type='market', qty=int(position), time_in_force='day')
+                if order != None:
+                    print(order)       
+            except Exception as e:
+                print(f'Mega sell order didn\'t go through for {stock}: {e}')
+        time.sleep(20)
 
-if __name__ == '__main__':
+def test():
     done = False
-    stocks = ['amd', 'msft', 'amzn', 'msft', 'spce', 'mu', 'nvda', 'intc', 
-    'dkng', 'bac', 'v', 'coin', 'gme', 'amc', 'hood', 'aal', 'mgm', 'hd', 
-    'logi', 'wmt', 'spot', 'fb', 'ge', 'gcg', 'tlry', 't', 'pltr', 'nclh', 
+    stocks = [ 
+    'amd', 'msft', 'amzn', 'spce', 'msft', 
+    'mu', 'nvda', 'intc', 'dkng', 'bac', 
+    'v', 'coin', 'gme', 'amc', 'hood', 'aal', 
+    'mgm', 'hd','logi', 'wmt', 'spot', 'fb', 
+    'ge', 'cgc', 'tlry', 't', 'pltr', 'nclh', 
     'pfe']
     while True:
         print('Stock advizir autotrade running...')
-        if not done and datetime.now(tz=pytz.utc).hour == 15 and datetime.weekday < 5:
+        if not done and datetime.now(tz=pytz.utc).hour == 15 and datetime.today().weekday() < 5:
             auto_trade(stocks)
             done = True
         if datetime.now(tz=pytz.utc).hour != 15:
             done = False
-        time.sleep(86400)
-
+        print('Done autotrading for the next hour.')
+        time.sleep(3600)
+test()
 # stocks = ['amd', 'msft', 'amzn', 'msft', 'spce', 'mu', 'nvda', 'intc', 
 #     'dkng', 'bac', 'v', 'coin', 'gme', 'amc', 'hood', 'aal', 'mgm', 'hd', 
 #     'logi', 'wmt', 'spot', 'fb', 'ge', 'cgc', 't', 'pltr', 'nclh', 
