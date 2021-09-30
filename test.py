@@ -54,6 +54,8 @@ def auto_trade(stocks):
                     print(order)       
             except Exception as e:
                 print(f'Mega sell order didn\'t go through for {stock}: {e}')
+        else:
+            print(f'Hold on {stock}')
         time.sleep(20)
 
 def test():

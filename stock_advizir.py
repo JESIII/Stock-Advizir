@@ -88,9 +88,19 @@ def train():
     #     time.sleep(1)
 
     training_stocks = load('./training_stocks_dict.dict')
-    data_cci = pd.read_csv('https://stats.oecd.org/sdmx-json/data/DP_LIVE/.CCI.../OECD?contentType=csv&detail=code&separator=comma&csv-lang=en', index_col='TIME', usecols=['TIME', 'Value'], parse_dates=True)
-    data_cci.index.names = ['Date']
-
+    data_cci = None
+    for f in os.listdir('./data/'):
+        if f.startswith('cci_data'):
+            todays_date = datetime.now().strftime("%Y-%m-%d")
+            date_in_dir = f.split('_')[2]
+            if date_in_dir != todays_date:
+                os.remove(f'./data/{f}')
+    if os.path.exists('./data/cci_data_{datetime.now().strftime("%Y-%m-%d")}'):
+        data_cci = load('./data/cci_data_{datetime.now().strftime("%Y-%m-%d")}')
+    else:
+        data_cci = pd.read_csv('https://stats.oecd.org/sdmx-json/data/DP_LIVE/.CCI.../OECD?contentType=csv&detail=code&separator=comma&csv-lang=en', index_col='TIME', usecols=['TIME', 'Value'], parse_dates=True)
+        data_cci.index.names = ['Date']
+        dump(data_cci, f'./data/cci_data_{datetime.now().strftime("%Y-%m-%d")}')
     for sector in training_stocks:
         stocks = training_stocks[sector]
         for stock in stocks:
@@ -172,8 +182,19 @@ def get_stock_category(stock):
     category = f'{sector}_{cap}'
     return category
 def predict(stock):
-    data_cci = pd.read_csv('https://stats.oecd.org/sdmx-json/data/DP_LIVE/.CCI.../OECD?contentType=csv&detail=code&separator=comma&csv-lang=en', index_col='TIME', usecols=['TIME', 'Value'], parse_dates=True)
-    data_cci.index.names = ['Date']
+    data_cci = None
+    for f in os.listdir('./data/'):
+        if f.startswith('cci_data'):
+            todays_date = datetime.now().strftime("%Y-%m-%d")
+            date_in_dir = f.split('_')[2]
+            if date_in_dir != todays_date:
+                os.remove(f'./data/{f}')
+    if os.path.exists('./data/cci_data_{datetime.now().strftime("%Y-%m-%d")}'):
+        data_cci = load('./data/cci_data_{datetime.now().strftime("%Y-%m-%d")}')
+    else:
+        data_cci = pd.read_csv('https://stats.oecd.org/sdmx-json/data/DP_LIVE/.CCI.../OECD?contentType=csv&detail=code&separator=comma&csv-lang=en', index_col='TIME', usecols=['TIME', 'Value'], parse_dates=True)
+        data_cci.index.names = ['Date']
+        dump(data_cci, f'./data/cci_data_{datetime.now().strftime("%Y-%m-%d")}')
     data : DataFrame = get_and_clean_data(stock, data_cci, '1y')
     data_copy = data.copy()
     category = get_stock_category(stock)
