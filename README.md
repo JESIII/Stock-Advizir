@@ -43,7 +43,15 @@ The prediction for each day is a result of majority voting, which is why we chos
 [Predictions](https://imgur.com/a/e3CGXx9)
 ![Example 1](https://i.imgur.com/Q3Q7gsk.png)
 ![Example 2](https://i.imgur.com/1x3Swbc.png)
-![Example 3](https://i.imgur.com/5B0b7j7.png)
+![Example 3](https://i.imgur.com/5B0b7j7.png)  
+  
+## Android App
+Currently in development: 
+[Download on Google Play Store](https://play.google.com/store/apps/details?id=com.jesiii.stockadvizir)  
+  
+## Backtesting  
+I am currently backtesting the script. You can the current positions [here](https://drive.google.com/file/d/1e2rrc39RedrFdKLD85jx8yHlU7CCehMo/view?usp=sharing) and the list of trades [here](https://drive.google.com/file/d/1e4lgMWyumHHBUeIveyEeypCBVeshpJKL/view?usp=sharing). The starting balance is 100k.  
+  
 ## Credit
 Thanks to the developers of [FinTa](https://github.com/peerchemist/finta) and [YFinance](https://github.com/ranaroussi/yfinance) for their useful tools that are used in this program.
 <!-- This is what the input data looks like graphed. Green is “buy” and red is “sell”:  
@@ -58,9 +66,6 @@ Y-axis: Open Price, X-axis: Date.
 Green*: Buy, Red*: Sell.  
 ![Graph Output](https://i.imgur.com/481mwAh.png)  
      -->
-## Android App
-Currently in development: 
-[Download on Google Play Store](https://play.google.com/store/apps/details?id=com.jesiii.stockadvizir)
   
 ## License
 [GPL-3.0-or-later](https://choosealicense.com/licenses/gpl-3.0/)
