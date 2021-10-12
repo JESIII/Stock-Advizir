@@ -48,6 +48,7 @@ The prediction for each day is a result of majority voting, which is why we chos
 ## Android App
 Currently in development: 
 [Download on Google Play Store](https://play.google.com/store/apps/details?id=com.jesiii.stockadvizir)  
+![Play Store Page](https://i.imgur.com/x2uDZBy.png)
   
 ## Backtesting  
 I am currently backtesting the script. You can the current positions [here](https://drive.google.com/file/d/1e2rrc39RedrFdKLD85jx8yHlU7CCehMo/view?usp=sharing) and the list of trades [here](https://drive.google.com/file/d/1e4lgMWyumHHBUeIveyEeypCBVeshpJKL/view?usp=sharing). The starting balance is 100k.  
