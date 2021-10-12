@@ -32,7 +32,7 @@ def add_ratings_to_data(df: pd.DataFrame):
     df['local_max'] = df['local_max'].notnull().astype('bool')
     df['local_min'] = df.iloc[argrelextrema(df['Open'].values, np.less, order=50)[0]]['Open']
     df['local_min'] = df['local_min'].notnull().astype('bool')
-    df.loc[(((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 3) & ~df['local_max']) | (df['local_min'] & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 2))), 'rating'] = 'buy'
+    df.loc[(((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 3) & ~df['local_max']) | (df['local_min'] & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 3))), 'rating'] = 'buy'
     df.loc[((df['Open'] < df.shift(-30)['Open']) & (df['Open'] < df.shift(-100)['Open']) & ((df.shift(-50)['Open'] - df['Open']) / df['Open'] * 100 > 10) & ~df['local_max']), 'rating'] = 'mega buy'
     df.loc[((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 5) & ~df['local_min']), 'rating'] = 'sell'
     df.loc[(((df['Open'] > df.shift(-30)['Open']) & (df['Open'] > df.shift(-100)['Open']) & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 10)  & ~df['local_min']) | (df['local_max'] & ((df['Open'] - df.shift(-50)['Open']) / df['Open'] * 100 > 5))), 'rating'] = 'mega sell'
@@ -169,17 +169,20 @@ def get_and_clean_data(stock, data_cci, period='max'):
     data.interpolate(axis=0, inplace=True)
     return data
 def get_stock_category(stock):
-    ticker = yf.Ticker(stock)
-    sector = ticker.info['sector']
-    cap = ticker.info['marketCap']
-    if cap > 10_000_000_000:
-        cap = 'large'
-    elif cap < 10_000_000_000 and cap > 2_000_000_000:
-        cap = 'mid'
-    else:
-        cap = 'small'
-    sector = sector.replace(' ', '')
-    category = f'{sector}_{cap}'
+    try:
+        ticker = yf.Ticker(stock)
+        sector = ticker.info['sector']
+        cap = ticker.info['marketCap']
+        if cap > 10_000_000_000:
+            cap = 'large'
+        elif cap < 10_000_000_000 and cap > 2_000_000_000:
+            cap = 'mid'
+        else:
+            cap = 'small'
+        sector = sector.replace(' ', '')
+        category = f'{sector}_{cap}'
+    except:
+        return 'ConsumerCyclical_mid'
     return category
 def predict(stock):
     data_cci = None
@@ -231,7 +234,7 @@ def predict(stock):
         else:
             prediction.append('hold')
     data_copy['rating'] = prediction
-    plot_data(data_copy, stock, mode='predicting')
+    #plot_data(data_copy, stock, mode='predicting')
     return json.dumps(json.loads(data_copy.reset_index().to_json(orient='records')), indent=2)
     
 
