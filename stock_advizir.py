@@ -146,6 +146,7 @@ def plot_cm(clf, X_test, y_test, stock):
     plt.savefig(f'./figs/confusion_matrix/{stock}.png')
     plt.close()
 def get_and_clean_data(stock, data_cci, period='max'):
+    time.sleep(30)
     yf_obj = yf.Ticker(stock)
     data = yf_obj.history(period=period, interval='1d')
     data.index = pd.to_datetime(data.index)
@@ -169,6 +170,7 @@ def get_and_clean_data(stock, data_cci, period='max'):
     data.interpolate(axis=0, inplace=True)
     return data
 def get_stock_category(stock):
+    time.sleep(30)
     try:
         ticker = yf.Ticker(stock)
         sector = ticker.info['sector']
