@@ -1,15 +1,12 @@
 from genericpath import exists
-from numpy import average, typeDict
 from pandas.core.frame import DataFrame
 from pandas.core.indexes.base import Index
 from pandas.io.pytables import IndexCol
 from stock_advizir import predict
-import traceback
+import traceback, math, time
 import yfinance as yf
 import pandas as pd
-import numpy as np
 from datetime import datetime
-import math, time, schedule
 from joblib import dump, load
 def auto_trade(stocks):
     positions, trades = DataFrame, DataFrame
@@ -142,6 +139,7 @@ def auto_trade(stocks):
     dump(balance, './backtesting/balance.dump')
     positions.to_csv('./backtesting/positions.csv', index_label='stock')
     trades.to_csv('./backtesting/trades.csv', index_label='trade')
+    update_PL()
 def update_PL():
     print('Updating P/L...')
     if exists('./backtesting/positions.csv'):
@@ -154,30 +152,6 @@ def calc_PL(x):
     ret_val = ((yf.Ticker(x.name).info['regularMarketPrice']/x['avg_price'])-1) * 100
     time.sleep(30)
     return ret_val
-def backtest():
-    stocks = [ 
-    'amd', 'msft', 'amzn', 'spce', 'msft', 
-    'mu', 'nvda', 'intc', 'dkng', 'bac', 
-    'v', 'coin', 'gme', 'amc', 'hood', 'aal', 
-    'mgm', 'hd','logi', 'wmt', 'spot', 'fb', 
-    'ge', 'cgc', 'tlry', 't', 'pltr', 'nclh', 
-    'pfe', 'f', 'gm', 'xom']
-    
-    schedule.every().monday.at("15:00").do(auto_trade, stocks=stocks)
-    schedule.every().tuesday.at("15:00").do(auto_trade, stocks=stocks)
-    schedule.every().wednesday.at("15:00").do(auto_trade, stocks=stocks)
-    schedule.every().thursday.at("15:00").do(auto_trade, stocks=stocks)
-    schedule.every().friday.at("15:00").do(auto_trade, stocks=stocks)
-    schedule.every().monday.at("18:00").do(update_PL)
-    schedule.every().tuesday.at("18:00").do(update_PL)
-    schedule.every().wednesday.at("18:00").do(update_PL)
-    schedule.every().thursday.at("18:00").do(update_PL)
-    schedule.every().friday.at("18:00").do(update_PL)
-    while True:
-        print('Running pending tasks...')
-        schedule.run_pending()
-        print('Finished pending tasks...')
-        time.sleep(1800) # wait 10 mins
 stocks = [ 
     'amd', 'msft', 'amzn', 'spce', 'msft', 
     'mu', 'nvda', 'intc', 'dkng', 'bac', 
@@ -185,4 +159,4 @@ stocks = [
     'mgm', 'hd','logi', 'wmt', 'spot', 'fb', 
     'ge', 'cgc', 'tlry', 't', 'pltr', 'nclh', 
     'pfe', 'f', 'gm', 'xom']
-backtest()
+auto_trade(stocks)
