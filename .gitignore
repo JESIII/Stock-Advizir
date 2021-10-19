@@ -4,3 +4,6 @@ data/*
 *.png
 .tmp.driveupload
 __pycache__
+backtesting/positions.csv
+backtesting/trades.csv
+backtesting/balance.dump
