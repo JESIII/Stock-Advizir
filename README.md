@@ -51,7 +51,7 @@ Currently in development:
 ![Play Store Page](https://i.imgur.com/x2uDZBy.png)
   
 ## Backtesting  
-I am currently backtesting the script. You can the current positions [here](https://drive.google.com/file/d/1e2rrc39RedrFdKLD85jx8yHlU7CCehMo/view?usp=sharing) and the list of trades [here](https://drive.google.com/file/d/1e4lgMWyumHHBUeIveyEeypCBVeshpJKL/view?usp=sharing). The starting balance is 100k.  
+Backtesting results: positions are [here](https://drive.google.com/file/d/1e2rrc39RedrFdKLD85jx8yHlU7CCehMo/view?usp=sharing) and the list of trades [here](https://drive.google.com/file/d/1e4lgMWyumHHBUeIveyEeypCBVeshpJKL/view?usp=sharing). The starting balance is 100k for each stock. The profit over 10 years is 245% not including dividends. Starting balance of $3.2m, ending balance of $7.8m.
   
 ## Credit
 Thanks to the developers of [FinTa](https://github.com/peerchemist/finta) and [YFinance](https://github.com/ranaroussi/yfinance) for their useful tools that are used in this program.

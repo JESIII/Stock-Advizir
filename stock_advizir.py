@@ -238,7 +238,58 @@ def predict(stock):
     data_copy['rating'] = prediction
     #plot_data(data_copy, stock, mode='predicting')
     return json.dumps(json.loads(data_copy.reset_index().to_json(orient='records')), indent=2)
-    
+def predict10y(stock):
+    data_cci = None
+    for f in os.listdir('./data/'):
+        if f.startswith('cci_data'):
+            todays_date = datetime.now().strftime("%Y-%m-%d")
+            date_in_dir = f.split('_')[2]
+            if date_in_dir != todays_date:
+                os.remove(f'./data/{f}')
+    if os.path.exists('./data/cci_data_{datetime.now().strftime("%Y-%m-%d")}'):
+        data_cci = load('./data/cci_data_{datetime.now().strftime("%Y-%m-%d")}')
+    else:
+        data_cci = pd.read_csv('https://stats.oecd.org/sdmx-json/data/DP_LIVE/.CCI.../OECD?contentType=csv&detail=code&separator=comma&csv-lang=en', index_col='TIME', usecols=['TIME', 'Value'], parse_dates=True)
+        data_cci.index.names = ['Date']
+        dump(data_cci, f'./data/cci_data_{datetime.now().strftime("%Y-%m-%d")}')
+    data : DataFrame = get_and_clean_data(stock, data_cci, '10y')
+    data_copy = data.copy()
+    category = get_stock_category(stock)
+    classifiers = []
+    for filename in os.listdir('./classifiers'):
+        if fnmatch.fnmatch(filename, f'{category}*'):
+            classifier : RandomForestClassifier = load(f'./classifiers/{filename}')
+            classifiers.append(classifier)
+    data = data.drop(labels=['Open', 'High', 'Low', 'Close', 'Volume'], axis=1)
+    predictions = []
+    for classifier in classifiers:
+        predictions.append(classifier.predict(data)) 
+    prediction = []
+    for i in range(len(predictions[0])):
+        ratings = {
+        'buy':0,
+        'hold':0,
+        'mega buy':0,
+        'mega sell':0,
+        'sell':0
+        }
+        if len(predictions) >= 3:
+            ratings[predictions[0][i]] += 1
+            ratings[predictions[1][i]] += 1
+            ratings[predictions[2][i]] += 1
+            prediction.append(max(ratings, key=ratings.get))
+        elif len(predictions) == 2:
+            if ratings[predictions[0][i]] == ratings[predictions[1][i]]:
+                prediction.append(ratings[predictions[0][i]])
+            else:
+                prediction.append('hold')
+        elif len(predictions) == 1:
+            prediction.append(ratings[predictions[0][i]])
+        else:
+            prediction.append('hold')
+    data_copy['rating'] = prediction
+    #plot_data(data_copy, stock, mode='predicting')
+    return json.dumps(json.loads(data_copy.reset_index().to_json(orient='records')), indent=2)
 
 def plot_data(data: pd.DataFrame, stock, mode):
     buys = data.loc[lambda data: data['rating'] == 'buy']
