@@ -109,7 +109,7 @@ def train_xgboost_classifier(data_dir: str) -> xgb.XGBClassifier:
     accuracy = accuracy_score(y_test, y_pred)
     print(f'XGBoost Model Accuracy: {accuracy}')
 
-    return model
+    return model, label_encoder
 
 def plot_signals(data: pd.DataFrame, title: str):
     # Plotting the open price
@@ -135,7 +135,7 @@ def plot_signals(data: pd.DataFrame, title: str):
     plt.savefig(f'./charts/test_signals_{title}.png', dpi=300, format='png')
     plt.show()
     
-def plot_test_data(file: str = 'HistoricalData_1738966591583_processed.csv'):
+def plot_test_data(file: str = 'HistoricalData_1738966591583_processed.csv', output_dir: str = './data/output/'):
     test_data = os.path.join(output_dir, file)
     if os.path.exists(test_data):
         sample_data = pd.read_csv(test_data, index_col="Date", parse_dates=True)
@@ -147,20 +147,14 @@ def save_models(model):
     # Save the models
     if not os.path.exists('./models'):
         os.makedirs('./models')
-    joblib.dump(xgb_model, './models/xgboost_model.pkl')
+    joblib.dump(model, './models/xgboost_model.pkl')
 
     print('Models saved to ./models directory')
+    
+def save_label_encoder(label_encoder):
+    # Save the models
+    if not os.path.exists('./models'):
+        os.makedirs('./models')
+    joblib.dump(label_encoder, './models/label_encoder.pkl')
 
-output_dir = './data/output/'
-# Process the datasets
-load_process_and_save_data(output_dir)
-
-# Train and compare classifiers
-xgb_model = train_xgboost_classifier(output_dir)
-
-save_models(xgb_model)
-
-plot_test_data()
-plot_test_data('HistoricalData_1738966623767_processed.csv')
-
-
+    print('Label encoder saved to ./models directory')

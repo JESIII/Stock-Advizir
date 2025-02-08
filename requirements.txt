@@ -3,9 +3,9 @@ pandas
 joblib
 finta
 scikit-learn
-alpaca-trade-api
 matplotlib
 numpy
 scipy
 xgboost
 tensorflow
+alpaca-py
