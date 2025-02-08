@@ -1,5 +1,5 @@
 from pandas.io.pytables import IndexCol
-from stock_advizir import predict
+from train import predict
 import pandas as pd
 import time
 import alpaca_trade_api as ata

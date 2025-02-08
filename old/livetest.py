@@ -2,7 +2,7 @@ from genericpath import exists
 from pandas.core.frame import DataFrame
 from pandas.core.indexes.base import Index
 from pandas.io.pytables import IndexCol
-from stock_advizir import predict
+from train import predict
 import traceback, math, time
 import yfinance as yf
 import pandas as pd
