@@ -15,7 +15,7 @@ The following indicators were also added for each stock to the historic data: St
 Need to update.
   
 ## Training  
-The algorithm used currently is the Scikit Learn Random Forest Classifier.
+The algorithm used currently is the XGBoost Classifier.
 The accuracy of the model after testing was 91%.
   
 ## Prediction
