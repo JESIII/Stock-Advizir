@@ -1,49 +1,29 @@
 # Stock Advizir
 
-This app uses a machine learning model to infer if a user should buy, sell, or hold a stock.
+This app trains a machine learning model to infer if a user should buy, sell, or hold a stock. It is accompanied by a script to "paper-trade" a stock to test the model.
 
 ## Data  
-The data was gathered from [Yahoo Finance](https://finance.yahoo.com/), [Organisation for Economic Co-operation and Development](https://www.oecd.org/unitedstates/), and [Financial Modeling Prep](https://financialmodelingprep.com)  
+The data was partially gathered from [Yahoo Finance](https://finance.yahoo.com/) and [the Nasdaq](https://www.nasdaq.com/).
   
-Data was gathered for 3 stocks per sector per market cap size. This results in a total of 9 stocks per sector, 3 small, 3 mid, 3 large.  
-There are 15 total sectors for a total of 9 * 15 ~ 135 stocks that data was gathered for and models trained on. (Some stocks in the list to train on were not on yahoo finance, and I didn't feel like fixing it. Worst case, you vote with 2 classifiers.)
+The maximum amount of historical data (up to 10 yrs) was gathered for 11 popular stocks from various sectors.
   
-The data was cleaned and ratings of 'buy', 'mega buy', 'sell', 'mega sell', and 'hold' were added to the historic data for the model to be trained on.  
+I made a simple algorithm to set 'buy', 'mega buy', 'sell', 'mega sell', and 'hold' ratings for the historical data based on local extrema.
   
-The following indicators were also added for each stock to the historic data: RSI, MACD, Stochastic Oscillator, & Volume Zone Oscillator.  
+The following indicators were also added for each stock to the historic data: Stochastic RSI, Pecentage Price Oscillator, Stochastic Oscillator, TRIX, and Volume Zone Oscillator and they were all normalized equally.  
   
-The Consumer Confidence Index was also added to the historic data, but is not specific to any stock.  
-  
-### Example Data:    
-[Training Data](https://imgur.com/a/koPoGUU)
-![Example 1](https://imgur.com/FRxZ74u.png)
-![Example 2](https://imgur.com/aqZHA8o.png)
-![Example 3](https://imgur.com/uFYY0dw.png)
+### Data After Processing:    
+Need to update.
   
 ## Training  
-The indicators above are what the model is trained on. Volume, and price are not used for training, just the oscillators that are calculated based on price and volume because they are easily normalized.  
-  
-The accuracy of the models was around the high 60s, lots in the 70s, some in the 80s and 90s and one outlier at 100% accurate legitimately.
-  
 The algorithm used currently is the Scikit Learn Random Forest Classifier.
-  
-### Example Confusion Matrices:  
-[Confusion Matrices](https://imgur.com/a/FbXkBG4)  
-![Example 1](https://imgur.com/Gmb9pqT.png)
-![Example 2](https://imgur.com/sGm6YP2.png)
+The accuracy of the model after testing was 91%.
   
 ## Prediction
 The stock data is gathered and cleaned the same as during training. Indicators are added as well.  
-  
-The models for the stocks sector and market cap size are loaded.  
-  
-The prediction for each day is a result of majority voting, which is why we chose an odd number of stocks per sector.
    
-### Example Predictions:  
-[Predictions](https://imgur.com/a/e3CGXx9)
-![Example 1](https://i.imgur.com/Q3Q7gsk.png)
-![Example 2](https://i.imgur.com/1x3Swbc.png)
-![Example 3](https://i.imgur.com/5B0b7j7.png)  
+### Example of predictions made on test datasets:  
+![Example 1](https://github.com/JESIII/Stock-Advizir/blob/main/charts/test_signals_HistoricalData_1738966591583_processed.csv.png)
+![Example 2](https://github.com/JESIII/Stock-Advizir/blob/main/charts/test_signals_HistoricalData_1738966623767_processed.csv.png)
   
 ## Android App
 Currently in development: 
@@ -51,7 +31,7 @@ Currently in development:
 ![Play Store Page](https://i.imgur.com/x2uDZBy.png)
   
 ## Backtesting  
-Backtesting results: positions are [here](https://drive.google.com/file/d/1e2rrc39RedrFdKLD85jx8yHlU7CCehMo/view?usp=sharing) and the list of trades [here](https://drive.google.com/file/d/1e4lgMWyumHHBUeIveyEeypCBVeshpJKL/view?usp=sharing). The starting balance is 100k for each stock. The profit over 10 years is 245% not including dividends. Starting balance of $3.2m, ending balance of $7.8m.
+Backtesting results: in prog
   
 ## Credit
 Thanks to the developers of [FinTa](https://github.com/peerchemist/finta) and [YFinance](https://github.com/ranaroussi/yfinance) for their useful tools that are used in this program.
