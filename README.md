@@ -1,6 +1,6 @@
 # Stock Advizir
 
-This app trains a machine learning model to infer if a user should buy, sell, or hold a stock. It is accompanied by a script to "paper-trade" a stock to test the model.
+This app trains a machine learning model to infer if a user should buy, sell, or hold a stock. It is accompanied by a script to "paper trade" a stock to test the model.
 
 ## Data  
 The data was partially gathered from [Yahoo Finance](https://finance.yahoo.com/) and [the Nasdaq](https://www.nasdaq.com/).
