@@ -7,7 +7,7 @@ REM Replace 'your_env_name' with your actual environment name
 call G:\Repos\Stock-Advizir\stckadv_env\Scripts\activate
 
 REM Run the Python script
-python G:\Repos\Stock-Advizir\paper_test.py
+python G:\Repos\Stock-Advizir\src\paper_test.py
 
 REM Deactivate the Python environment
 deactivate

@@ -1,4 +1,4 @@
-yfinance
+yfinance==0.2.54
 pandas
 joblib
 finta
@@ -9,3 +9,7 @@ scipy
 xgboost
 tensorflow
 alpaca-py
+pyarrow
+huggingface_hub
+keras
+swifter

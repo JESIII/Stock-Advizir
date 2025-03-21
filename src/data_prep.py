@@ -3,14 +3,18 @@ import pandas as pd
 import numpy as np
 from scipy.signal import argrelextrema
 from finta import TA
-from sklearn import preprocessing
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
-import xgboost as xgb
-import joblib
+from pathlib import Path
 
-def add_signal_to_local_extrema(df: pd.DataFrame) -> pd.DataFrame:
+def download_dataset_from_hf():
+    current_file_path = Path(__file__).resolve()
+    splits = {'train': 'train-stocks.parquet', 'test': 'test-stocks.parquet'}
+    df = pd.read_parquet("hf://datasets/Kicel/daily-stocks/" + splits["train"])
+    current_dir_path = current_file_path.parent
+    relative_path = current_dir_path.parent / "data" / "training" / "daily-stocks.parquet"
+    df.to_parquet(relative_path)
+
+def add_labels(df: pd.DataFrame) -> pd.DataFrame:
     df['rating'] = 'hold'
     df['local_max'] = df.iloc[argrelextrema(df['open'].values, np.greater, order=10)[0]]['open']
     df['local_max'] = df['local_max'].notnull().astype('bool')
@@ -18,7 +22,7 @@ def add_signal_to_local_extrema(df: pd.DataFrame) -> pd.DataFrame:
     df['local_min'] = df['local_min'].notnull().astype('bool')
     
     buy_condition = (df['open'] < df.shift(-5)['open']) & (df['open'] < df.shift(5)['open']) & ((abs(df.shift(-10)['open'] - df['open']) / df['open'] * 100) > 2) & ~df['local_max']
-    mega_buy_condition = (df['open'] < df.shift(-5)['open']) & (df['open'] < df.shift(5)['open']) & ((abs(df.shift(-10)['open']) - df['open']) / df['open'] * 100) > 5 & ~df['local_max']
+    mega_buy_condition = (df['open'] < df.shift(-5)['open']) & (df['open'] < df.shift(5)['open']) & ((abs(df.shift(-10)['open'] - df['open']) / df['open'] * 100) > 5) & ~df['local_max']
     sell_condition = (df['open'] > df.shift(-5)['open']) & (df['open'] > df.shift(5)['open']) & ((abs(df['open'] - df.shift(5)['open']) / df['open'] * 100) > 5) & ~df['local_min']
     mega_sell_condition = (df['open'] > df.shift(-5)['open']) & (df['open'] > df.shift(5)['open']) & ((abs(df['open'] - df.shift(5)['open']) / df['open'] * 100) > 10) & ~df['local_min']
 
@@ -31,7 +35,41 @@ def add_signal_to_local_extrema(df: pd.DataFrame) -> pd.DataFrame:
     print('Signals added based on extrema.')
     return df
 
-def load_and_process_single_file(file_path: str, output_dir: str) -> None:
+def process_single_stock(stock_data):
+    stock_data = add_technical_indicators(stock_data)
+    stock_data = add_labels(stock_data)
+    return stock_data
+
+def load_and_process_single_parquet_file(file_path: str, output_dir: str) -> None:
+    pd.options.mode.copy_on_write = True
+    try:
+        all_data = pd.read_parquet(file_path)
+        new_data = None
+        
+        stocks = all_data['symbol'].unique()
+        stock_count = len(stocks)
+        print("Stock count:", stock_count)
+        curr_stock = 0
+        for i in range(len(stocks)):#range(len(stocks)):
+            stock_data = all_data[all_data['symbol'] == stocks[i]]
+            stock_data = process_single_stock(stock_data)
+            if i == 0:
+                new_data = pd.DataFrame(columns=stock_data.columns)
+            new_data = pd.concat([new_data, stock_data])
+            curr_stock += 1
+            print(f'Processed {curr_stock}/{stock_count} stocks', end='\r')
+        
+        # Save the processed dataset with _processed appended to the file name
+        base_name = os.path.basename(file_path)
+        name, ext = os.path.splitext(base_name)
+        processed_file_name = f"{name}_processed{ext}"
+        output_file_path = os.path.join(output_dir, processed_file_name)
+        new_data.to_parquet(output_file_path)
+        print(f'Saved processed data to {output_file_path}')
+    except Exception as e:
+        print(f"Error processing {file_path}: {e}")
+
+def load_and_process_single_csv_file(file_path: str, output_dir: str) -> None:
     try:
         df = pd.read_csv(file_path, index_col="Date", parse_dates=True)
         df['Close/Last'] = df['Close/Last'].replace({r'\$': ''}, regex=True).astype(np.float32)
@@ -39,8 +77,8 @@ def load_and_process_single_file(file_path: str, output_dir: str) -> None:
         df['High'] = df['High'].replace({r'\$': ''}, regex=True).astype(np.float32)
         df['Low'] = df['Low'].replace({r'\$': ''}, regex=True).astype(np.float32)
         df.rename(columns={'Close/Last': 'close', 'Open': 'open', 'High': 'high', 'Low': 'low'}, inplace=True)
-        df = add_indicators(df)
-        df = add_signal_to_local_extrema(df)
+        df = add_technical_indicators(df)
+        df = add_labels(df)
         
         # Save the processed dataset with _processed appended to the file name
         base_name = os.path.basename(file_path)
@@ -52,21 +90,22 @@ def load_and_process_single_file(file_path: str, output_dir: str) -> None:
     except Exception as e:
         print(f"Error processing {file_path}: {e}")
 
-def add_indicators(data: pd.DataFrame) -> pd.DataFrame:
+def add_technical_indicators(data: pd.DataFrame) -> pd.DataFrame:
     data.index = pd.to_datetime(data.index)
     data_rsi = TA.STOCHRSI(data)
     data_trix = TA.TRIX(data)
     data_stoch = TA.STOCH(data)
     data_ppo = TA.PPO(data)
     data_vzo = TA.VZO(data)
-    data['rsi'] = (data_rsi-np.min(data_rsi))/(np.max(data_rsi)-np.min(data_rsi))
-    data['trix'] = (data_trix-np.min(data_trix))/(np.max(data_trix)-np.min(data_trix))
-    data['stoch'] = (data_stoch-np.min(data_stoch))/(np.max(data_stoch)-np.min(data_stoch))
-    data['ppo'] = (data_ppo['PPO'] - data_ppo['PPO'].min()) / (data_ppo['PPO'].max() - data_ppo['PPO'].min())
-    data['vzo'] = (data_vzo-np.min(data_vzo))/(np.max(data_vzo)-np.min(data_vzo)) 
+    
+    data.loc[:,'rsi'] = (data_rsi - np.min(data_rsi)) / (np.max(data_rsi) - np.min(data_rsi))
+    data.loc[:,'trix'] = (data_trix - np.min(data_trix)) / (np.max(data_trix) - np.min(data_trix))
+    data.loc[:,'stoch'] = (data_stoch - np.min(data_stoch)) / (np.max(data_stoch) - np.min(data_stoch))
+    data.loc[:,'ppo'] = (data_ppo['PPO'] - data_ppo['PPO'].min()) / (data_ppo['PPO'].max() - data_ppo['PPO'].min())
+    data.loc[:,'vzo'] = (data_vzo - np.min(data_vzo)) / (np.max(data_vzo) - np.min(data_vzo))
     data = data.dropna()
-    print('Oscillator indicators added.')
-    print(data.head(5))
+    # print('Oscillator indicators added.')
+    # print(data.head(5))
     return data
 
 def load_process_and_save_data(output_dir: str) -> None:
@@ -77,39 +116,7 @@ def load_process_and_save_data(output_dir: str) -> None:
         for file in files:
             if file.endswith('.csv'):
                 file_path = os.path.join(root, file)
-                load_and_process_single_file(file_path, output_dir)
-
-def train_xgboost_classifier(data_dir: str) -> xgb.XGBClassifier:
-    all_data = pd.DataFrame()
-    
-    for root, _, files in os.walk(data_dir):
-        for file in files:
-            if file.endswith('_processed.csv'):
-                file_path = os.path.join(root, file)
-                df = pd.read_csv(file_path, index_col="Date", parse_dates=True)
-                all_data = pd.concat([all_data, df])
-                
-    # Ensure the target variable is correctly encoded
-    label_encoder = preprocessing.LabelEncoder()
-    all_data['rating'] = label_encoder.fit_transform(all_data['rating'])
-
-    # Prepare the feature and target variables
-    X = all_data[['rsi', 'trix', 'stoch', 'ppo', 'vzo']]
-    y = all_data['rating']
-
-    # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # Train the XGBoost classifier
-    model = xgb.XGBClassifier()
-    model.fit(X_train, y_train)
-
-    # Evaluate the model
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f'XGBoost Model Accuracy: {accuracy}')
-
-    return model, label_encoder
+                load_and_process_single_csv_file(file_path, output_dir)
 
 def plot_signals(data: pd.DataFrame, title: str):
     # Plotting the open price
@@ -142,19 +149,3 @@ def plot_test_data(file: str = 'HistoricalData_1738966591583_processed.csv', out
         plot_signals(sample_data, file)
     else:
         print(f"Test data not found: {test_data}")
-        
-def save_models(model):
-    # Save the models
-    if not os.path.exists('./models'):
-        os.makedirs('./models')
-    joblib.dump(model, './models/xgboost_model.pkl')
-
-    print('Models saved to ./models directory')
-    
-def save_label_encoder(label_encoder):
-    # Save the models
-    if not os.path.exists('./models'):
-        os.makedirs('./models')
-    joblib.dump(label_encoder, './models/label_encoder.pkl')
-
-    print('Label encoder saved to ./models directory')
